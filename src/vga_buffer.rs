@@ -1,9 +1,34 @@
+use core::fmt;
+use lazy_static::lazy_static;
+use spin::Mutex;
+use volatile::Volatile;
+
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
 const VGA_ADDRESS: usize = 0xb8000;
 
-use volatile::Volatile;
+lazy_static! {
+    pub static ref WRITER: Mutex<Writer> =
+        Mutex::new(Writer::new(Color::LightGray, Color::Black, true, false));
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
+}
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -115,10 +140,9 @@ impl Writer {
     }
 }
 
-pub fn print_welcome() {
-    let mut writer = Writer::new(Color::Blue, Color::Black);
-
-    writer.write("Hi!\n");
-    writer.current_style = StyleByte::new(Color::White, Color::Black);
-    writer.write("This is TetanOS.\n\nBe careful it's kinda rusty in here");
+impl fmt::Write for Writer {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.write(s);
+        Ok(())
+    }
 }

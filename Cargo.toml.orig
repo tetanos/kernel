@@ -19,8 +19,11 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 bootloader = "^0.3.12"
+<<<<<<< HEAD
 spin = "0.4.9"
+=======
 volatile = "0.2.3"
+>>>>>>> d27c8d155a8bbdd99e4ae01c650a75bed9de1af1
 
 [package.metadata.bootimage]
 default-target = "x86_64.json"
