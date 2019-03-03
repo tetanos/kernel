@@ -13,12 +13,3 @@ pub extern "C" fn _start() -> ! {
     main();
 }
 
-#[no_mangle]
-pub extern "C" fn mainCRTStartup() -> ! {
-    main();
-}
-
-#[no_mangle]
-pub extern "C" fn main() -> ! {
-    loop {}
-}

@@ -2,7 +2,6 @@
 name = "tetan_os"
 version = "0.1.0"
 description = "An attempt at building an operating system, make sure you're vaxxed."
-license = "MIT"
 authors = ["Alexandre Frigon <alexandre.frigon.1@gmail.com>"]
 edition = "2018"
 
@@ -10,9 +9,9 @@ documentation = ""
 homepage = ""
 repository = "https://github.com/afrigon/TetanOS"
 readme = "https://github.com/afrigon/TetanOS/blob/master/README.md"
+license-file = "https://github.com/afrigon/TetanOS/blob/master/LICENSE"
 keywords = ["Operating", "system", "tetanus", "tetanos", "vaxx"]
 categories = ["no-std"]
-license-file = "https://github.com/afrigon/TetanOS/blob/master/LICENSE"
 
 [badges]
 travis-ci = { repository = "https://github.com/afrigon/TetanOS", branch = "master" }
