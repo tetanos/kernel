@@ -84,15 +84,33 @@ impl Writer {
     }
 
     pub fn write_new_line(&mut self) {
-    
+        for y in 1..BUFFER_HEIGHT {
+            for x in 0..BUFFER_WIDTH {
+                let c = self.buffer.chars[y][x];
+                self.buffer.chars[y - 1][x] = c;
+            }
+        }
+        self.clear_row(BUFFER_HEIGHT - 1);
+        self.cursor_x = 0;
+    }
+
+    fn clear_row(&mut self, y: usize) {
+        let blank = ScreenChar {
+            ascii: 0x20,
+            style: self.current_style,
+        };
+
+        for x in 0..BUFFER_WIDTH {
+            self.buffer.chars[y][x] = blank;
+        }
     }
 }
 
 pub fn print_welcome() {
     let mut writer = Writer::new(Color::Blue, Color::Black, true, false);
 
-    writer.write("Hi! ");
-    writer.current_style = StyleByte::new(Color::Red, Color::Black, false, false);
-    writer.write("This is TetanOS. be careful it's kinda rusty in here");
+    writer.write("Hi!\n");
+    writer.current_style = StyleByte::new(Color::Red, Color::Black, true, false);
+    writer.write("This is TetanOS.\n\nBe careful it's kinda rusty in here");
 }
 
