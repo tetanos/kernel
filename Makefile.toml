@@ -1,0 +1,26 @@
+[tasks.format]
+instal_crate = "rustfmt"
+command = "cargo"
+args = ["fmt"]
+
+# not working properly with the nightly builds
+[tasks.lint]
+instal_crate = "clippy"
+command = "cargo"
+args = ["clippy"]
+
+[tasks.build]
+install_crate = "bootimage"
+command = "bootimage"
+args = ["build"]
+dependencies = ["format"]
+
+[tasks.run]
+command = "qemu-system-x86_64"
+args = ["-drive", "format=raw,file=target/x86_64/debug/bootimage-tetan_os.bin"]
+dependencies = ["build"]
+
+[tasks.doc]
+command = "cargo"
+args = ["doc", "--no-deps", "--open"]
+
