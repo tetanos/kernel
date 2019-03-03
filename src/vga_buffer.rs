@@ -1,6 +1,7 @@
 use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
+use volatile::Volatile;
 
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
@@ -64,7 +65,7 @@ struct ScreenChar {
 
 #[repr(transparent)]
 struct Buffer {
-    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT],
+    chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 pub struct Writer {
@@ -104,7 +105,7 @@ impl Writer {
                     style: self.current_style,
                 };
 
-                self.buffer.chars[BUFFER_HEIGHT - 1][self.cursor_x] = screen_char;
+                self.buffer.chars[BUFFER_HEIGHT - 1][self.cursor_x].write(screen_char);
                 self.cursor_x += 1;
             }
         }
@@ -113,8 +114,8 @@ impl Writer {
     pub fn write_new_line(&mut self) {
         for y in 1..BUFFER_HEIGHT {
             for x in 0..BUFFER_WIDTH {
-                let c = self.buffer.chars[y][x];
-                self.buffer.chars[y - 1][x] = c;
+                let c = self.buffer.chars[y][x].read();
+                self.buffer.chars[y - 1][x].write(c);
             }
         }
         self.clear_row(BUFFER_HEIGHT - 1);
@@ -128,7 +129,7 @@ impl Writer {
         };
 
         for x in 0..BUFFER_WIDTH {
-            self.buffer.chars[y][x] = blank;
+            self.buffer.chars[y][x].write(blank);
         }
     }
 }
