@@ -1,3 +1,5 @@
+use core::fmt;
+
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
@@ -14,7 +16,7 @@ pub enum Color {
     Red = 0x4,
     Magenta = 0x5,
     Brown = 0x6,
-    LightGray = 0x7
+    LightGray = 0x7,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,10 +25,9 @@ struct StyleByte(u8);
 
 impl StyleByte {
     fn new(foreground: Color, background: Color, bright: bool, blink: bool) -> StyleByte {
-        StyleByte((blink as u8) << 7 |
-                  (background as u8) << 4 |
-                  (bright as u8) << 3 |
-                  (foreground as u8))
+        StyleByte(
+            (blink as u8) << 7 | (background as u8) << 4 | (bright as u8) << 3 | (foreground as u8),
+        )
     }
 }
 
@@ -34,26 +35,26 @@ impl StyleByte {
 #[repr(C)]
 struct ScreenChar {
     ascii: u8,
-    style: StyleByte
+    style: StyleByte,
 }
 
 #[repr(transparent)]
 struct Buffer {
-    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]
+    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 pub struct Writer {
     cursor_x: usize,
     current_style: StyleByte,
-    buffer: &'static mut Buffer
+    buffer: &'static mut Buffer,
 }
 
 impl Writer {
     pub fn new(foreground: Color, background: Color, bright: bool, blink: bool) -> Writer {
         Writer {
-            cursor_x: 0, 
-            current_style: StyleByte::new(foreground, background, bright, blink), 
-            buffer: unsafe { &mut *(VGA_ADDRESS as *mut Buffer) }
+            cursor_x: 0,
+            current_style: StyleByte::new(foreground, background, bright, blink),
+            buffer: unsafe { &mut *(VGA_ADDRESS as *mut Buffer) },
         }
     }
 
@@ -61,7 +62,7 @@ impl Writer {
         for byte in s.bytes() {
             match byte {
                 0x20...0x7e | b'\n' => self.write_byte(byte),
-                _ => self.write_byte(0xfe)
+                _ => self.write_byte(0xfe),
             }
         }
     }
@@ -70,11 +71,13 @@ impl Writer {
         match byte {
             b'\n' => self.write_new_line(),
             byte => {
-                if self.cursor_x >= BUFFER_WIDTH { self.write_new_line() }
+                if self.cursor_x >= BUFFER_WIDTH {
+                    self.write_new_line()
+                }
 
                 let screen_char = ScreenChar {
                     ascii: byte,
-                    style: self.current_style
+                    style: self.current_style,
                 };
 
                 self.buffer.chars[BUFFER_HEIGHT - 1][self.cursor_x] = screen_char;
@@ -106,11 +109,20 @@ impl Writer {
     }
 }
 
-pub fn print_welcome() {
-    let mut writer = Writer::new(Color::Blue, Color::Black, true, false);
-
-    writer.write("Hi!\n");
-    writer.current_style = StyleByte::new(Color::Red, Color::Black, true, false);
-    writer.write("This is TetanOS.\n\nBe careful it's kinda rusty in here");
+impl fmt::Write for Writer {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.write(s);
+        Ok(())
+    }
 }
 
+pub fn print_welcome() {
+    use core::fmt::Write;
+    let mut writer = Writer::new(Color::Blue, Color::Black, true, false);
+    write!(
+        writer,
+        "Hi!\nThis is {}.\n\nBe careful it's kinda rusty in here.",
+        "Tetanos"
+    )
+    .unwrap();
+}
