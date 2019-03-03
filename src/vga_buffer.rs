@@ -9,8 +9,7 @@ const BUFFER_WIDTH: usize = 80;
 const VGA_ADDRESS: usize = 0xb8000;
 
 lazy_static! {
-    pub static ref WRITER: Mutex<Writer> =
-        Mutex::new(Writer::new(Color::LightGray, Color::Black, true, false));
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer::new(Color::LightGray, Color::Black));
 }
 
 #[macro_export]
