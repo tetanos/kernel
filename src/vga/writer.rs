@@ -78,3 +78,57 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use volatile::Volatile;
+
+    fn construct_writer() -> Writer {
+        use std::boxed::Box;
+
+        let buffer = construct_buffer();
+        Writer {
+            cursor_x: 0,
+            current_style: StyleByte::new(Color::Blue, Color::Magenta),
+            buffer: Box::leak(Box::new(buffer)),
+        }
+    }
+
+    fn construct_buffer() -> Buffer {
+        use array_init::array_init;
+
+        Buffer {
+            chars: array_init(|_| array_init(|_| Volatile::new(empty_char()))),
+        }
+    }
+
+    fn empty_char() -> StyledCharacter {
+        StyledCharacter {
+            character: b' ',
+            style: StyleByte::new(Color::Green, Color::Brown),
+        }
+    }
+
+    #[test]
+    fn write_byte() {
+        let mut writer = construct_writer();
+        writer.write_byte(b'X');
+        writer.write_byte(b'Y');
+
+        for (i, row) in writer.buffer.chars.iter().enumerate() {
+            for (j, screen_char) in row.iter().enumerate() {
+                let screen_char = screen_char.read();
+                if i == BUFFER_HEIGHT - 1 && j == 0 {
+                    assert_eq!(screen_char.character, b'X');
+                    assert_eq!(screen_char.style, writer.current_style);
+                } else if i == BUFFER_HEIGHT - 1 && j == 1 {
+                    assert_eq!(screen_char.character, b'Y');
+                    assert_eq!(screen_char.style, writer.current_style);
+                } else {
+                    assert_eq!(screen_char, empty_char());
+                }
+            }
+        }
+    }
+}
