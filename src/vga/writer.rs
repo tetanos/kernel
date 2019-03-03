@@ -72,12 +72,17 @@ impl Writer {
     }
 
     pub fn set_foreground_color(&mut self, color: Color) {
-        self.current_style = StyleByte::new_raw((self.current_style.0 & !0xf) | color as u8);
+        self.current_style = StyleByte::new_raw((self.current_style.0 & 0xf0) | color as u8);
     }
 
     pub fn set_background_color(&mut self, color: Color) {
         self.current_style =
-            StyleByte::new_raw((self.current_style.0 & !0xf0) | ((color as u8) << 4));
+            StyleByte::new_raw((self.current_style.0 & 0xf) | ((color as u8) << 4));
+    }
+
+    pub fn rainbow_next(&mut self) {
+        let u = (self.current_style.0 + 1) & 0x7 | 0x8;
+        self.current_style = StyleByte::new_raw((self.current_style.0 & 0xf0) | u);
     }
 }
 

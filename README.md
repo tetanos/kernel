@@ -9,6 +9,10 @@ Build the bootable binary and launch it in qemu
 cargo make run
 ```
 
+## Flash to a usb key
+
+`dd if=target/x86_64/debug/bootimage-tetan_os.bin of=/dev/diskX && sync`
+
 ## License
 
 TetanOS is MIT licensed.
