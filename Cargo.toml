@@ -18,16 +18,4 @@ license-file = "https://github.com/afrigon/TetanOS/blob/master/LICENSE"
 travis-ci = { repository = "https://github.com/afrigon/TetanOS", branch = "master" }
 maintenance = { status = "experimental" }
 
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
-
-[profile.test]
-panic = 'abort'
-
-[profile.bench]
-panic = 'abort'
-
 [dependencies]
