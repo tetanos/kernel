@@ -32,10 +32,28 @@ pub fn _print(args: fmt::Arguments) {
     WRITER.lock().write_fmt(args).unwrap();
 }
 
+pub fn ferris_say(s: &str) {
+    let ferris = r#"
+      \
+       \
+          _~^~^~_
+      \) /  o o  \ (/
+        '_   -   _'
+        / '-----' \
+"#;
+
+    println!("{}", s);
+    set_foreground_color(Color::Red);
+    println!("{}", ferris);
+    set_foreground_color(Color::White);
+}
+
+#[allow(dead_code)]
 pub fn set_foreground_color(color: Color) {
     WRITER.lock().set_foreground_color(color);
 }
 
+#[allow(dead_code)]
 pub fn set_background_color(color: Color) {
     WRITER.lock().set_background_color(color);
 }

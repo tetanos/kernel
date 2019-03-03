@@ -20,7 +20,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hi!");
-    println!("This is TetanOS.");
+    vga::ferris_say("This is TetanOS");
 
     interrupts::init();
 
