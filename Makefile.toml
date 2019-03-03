@@ -17,7 +17,10 @@ dependencies = ["format"]
 
 [tasks.run]
 command = "qemu-system-x86_64"
-args = ["-drive", "format=raw,file=target/x86_64/debug/bootimage-tetan_os.bin"]
+args = [
+	"-drive", 
+	"format=raw,file=target/x86_64/debug/bootimage-tetan_os.bin",
+]
 dependencies = ["build"]
 
 [tasks.doc]
