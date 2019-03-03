@@ -1,4 +1,4 @@
-use core::fmt;
+use fmt;
 
 use super::*;
 

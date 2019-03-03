@@ -31,3 +31,16 @@ pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
 }
+
+pub fn ferris_say(something: &str) {
+    let ferris = r#"
+      \
+       \
+          _~^~^~_
+      \) /  o o  \ (/
+        '_   -   _'
+        / '-----' \
+"#;
+
+    println!("{}{}", something, ferris);
+}
