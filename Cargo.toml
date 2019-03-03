@@ -18,3 +18,8 @@ travis-ci = { repository = "https://github.com/afrigon/TetanOS", branch = "maste
 maintenance = { status = "experimental" }
 
 [dependencies]
+bootloader = "^0.3.12"
+
+[package.metadata.bootimage]
+default-target = "x86_64.json"
+
