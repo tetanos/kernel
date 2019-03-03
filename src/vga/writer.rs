@@ -1,13 +1,14 @@
 use core::fmt;
 
-use super::*;
+use crate::vga::buffer::{Buffer, Color, StyleByte, StyledCharacter};
+use crate::vga::{BUFFER_HEIGHT, BUFFER_WIDTH};
 
 const VGA_ADDRESS: usize = 0xb8000;
 
 pub struct Writer {
     cursor_x: usize,
     current_style: StyleByte,
-    buffer: &'static mut buffer::Buffer,
+    buffer: &'static mut Buffer,
 }
 
 impl Writer {
@@ -15,7 +16,7 @@ impl Writer {
         Writer {
             cursor_x: 0,
             current_style: StyleByte::new(foreground, background),
-            buffer: unsafe { &mut *(VGA_ADDRESS as *mut buffer::Buffer) },
+            buffer: unsafe { &mut *(VGA_ADDRESS as *mut Buffer) },
         }
     }
 
@@ -69,6 +70,14 @@ impl Writer {
         for x in 0..BUFFER_WIDTH {
             self.buffer.chars[y][x].write(blank);
         }
+    }
+
+    pub fn set_foreground_color(&mut self, color: Color) {
+        self.current_style = StyleByte::new_raw((self.current_style.0 & !0xf) | color as u8)
+    }
+
+    pub fn set_background_color(&mut self, color: Color) {
+        self.current_style = StyleByte::new_raw((self.currentStyle.0 & !0xf0) | (color as u8 << 4)
     }
 }
 

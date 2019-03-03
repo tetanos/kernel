@@ -16,11 +16,15 @@ pub struct StyledCharacter {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct StyleByte(u8);
+pub struct StyleByte(pub u8);
 
 impl StyleByte {
     pub fn new(foreground: Color, background: Color) -> StyleByte {
         StyleByte((background as u8) << 4 | foreground as u8)
+    }
+
+    pub fn new_raw(value: u8) -> StyleByte {
+        StyleByte(value)
     }
 }
 
