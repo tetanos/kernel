@@ -1,5 +1,5 @@
 [package]
-name = "TetanOS"
+name = "tetan_os"
 version = "0.1.0"
 authors = ["Alexandre Frigon <alexandre.frigon.1@gmail.com>"]
 edition = "2018"
