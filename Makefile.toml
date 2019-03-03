@@ -24,3 +24,11 @@ dependencies = ["build"]
 command = "cargo"
 args = ["doc", "--no-deps", "--open"]
 
+[tasks.test]
+command = "cargo"
+args = ["test", "--tests"]
+
+[tasks.bench]
+command = "cargo"
+args = ["bench", "--benches"]
+
