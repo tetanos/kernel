@@ -2,7 +2,7 @@
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(unused_imports))]
 
-mod vga_buffer;
+mod vga;
 
 use core::panic::PanicInfo;
 
