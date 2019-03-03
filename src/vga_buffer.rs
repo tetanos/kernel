@@ -9,8 +9,7 @@ const BUFFER_WIDTH: usize = 80;
 const VGA_ADDRESS: usize = 0xb8000;
 
 lazy_static! {
-    pub static ref WRITER: Mutex<Writer> =
-        Mutex::new(Writer::new(Color::LightGray, Color::Black, true, false));
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer::new(Color::LightGray, Color::Black));
 }
 
 #[macro_export]
@@ -31,17 +30,25 @@ pub fn _print(args: fmt::Arguments) {
 }
 
 #[allow(dead_code)]
-#[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
 pub enum Color {
-    Black = 0x0,
-    Blue = 0x1,
-    Green = 0x2,
-    Cyan = 0x3,
-    Red = 0x4,
-    Magenta = 0x5,
-    Brown = 0x6,
-    LightGray = 0x7,
+    Black = 0,
+    Blue = 1,
+    Green = 2,
+    Cyan = 3,
+    Red = 4,
+    Magenta = 5,
+    Brown = 6,
+    LightGray = 7,
+    DarkGray = 8,
+    LightBlue = 9,
+    LightGreen = 10,
+    LightCyan = 11,
+    LightRed = 12,
+    Pink = 13,
+    Yellow = 14,
+    White = 15,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,10 +56,8 @@ pub enum Color {
 struct StyleByte(u8);
 
 impl StyleByte {
-    fn new(foreground: Color, background: Color, bright: bool, blink: bool) -> StyleByte {
-        StyleByte(
-            (blink as u8) << 7 | (background as u8) << 4 | (bright as u8) << 3 | (foreground as u8),
-        )
+    fn new(foreground: Color, background: Color) -> StyleByte {
+        StyleByte((background as u8) << 4 | foreground as u8)
     }
 }
 
@@ -75,10 +80,10 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(foreground: Color, background: Color, bright: bool, blink: bool) -> Writer {
+    pub fn new(foreground: Color, background: Color) -> Writer {
         Writer {
             cursor_x: 0,
-            current_style: StyleByte::new(foreground, background, bright, blink),
+            current_style: StyleByte::new(foreground, background),
             buffer: unsafe { &mut *(VGA_ADDRESS as *mut Buffer) },
         }
     }
