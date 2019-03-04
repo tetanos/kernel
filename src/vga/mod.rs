@@ -1,4 +1,5 @@
 pub mod buffer;
+pub mod term;
 pub mod writer;
 
 use core::fmt;

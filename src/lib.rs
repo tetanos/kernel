@@ -16,7 +16,7 @@ mod vga;
 pub extern "C" fn _start() -> ! {
     println!("Hi!");
     vga::ferris_say("This is TetanOS");
-    print!("Be careful, it's kinda rusty in here.");
+    println!("Be careful, it's kinda rusty in here.");
     init();
 }
 
@@ -27,11 +27,9 @@ pub fn init() -> ! {
     use interrupts::PICS;
     unsafe { PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
+    vga::term::TERM.lock().init();
 
-    loop {
-        //print!("-");
-        for _ in 0..10000 {}
-    }
+    hlt_loop();
 }
 
 #[cfg(not(test))]

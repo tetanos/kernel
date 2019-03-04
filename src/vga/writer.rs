@@ -23,6 +23,7 @@ impl Writer {
         for byte in s.bytes() {
             match byte {
                 0x20...0x7e | b'\n' => self.write_byte(byte),
+                0x08 => self.erase_byte(),
                 _ => self.write_byte(0xfe),
             }
         }
@@ -33,6 +34,21 @@ impl Writer {
             b'\n' => self.write_new_line(),
             byte => self.write_character(byte),
         }
+    }
+
+    fn erase_byte(&mut self) {
+        if self.cursor_x < 15 {
+            return;
+        }
+
+        self.cursor_x -= 1;
+
+        let screen_char = StyledCharacter {
+            character: 0x20,
+            style: self.current_style,
+        };
+
+        self.buffer.chars[BUFFER_HEIGHT - 1][self.cursor_x].write(screen_char);
     }
 
     fn write_character(&mut self, byte: u8) {

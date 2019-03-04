@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use x86_64::structures::idt::{ExceptionStackFrame, InterruptDescriptorTable};
+use x86_64::structures::idt::{ExceptionStackFrame, InterruptDescriptorTable, PageFaultErrorCode};
 
 use crate::gdt;
 use crate::print;
@@ -22,6 +22,7 @@ lazy_static! {
 
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
+        idt.page_fault.set_handler_fn(page_fault_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
         unsafe {
             idt.double_fault
@@ -54,6 +55,21 @@ impl InterruptIndex {
     }
 }
 
+extern "x86-interrupt" fn page_fault_handler(
+    stack_frame: &mut ExceptionStackFrame,
+    _error_code: PageFaultErrorCode,
+) {
+    use crate::hlt_loop;
+    use x86_64::registers::control::Cr2;
+
+    vga::set_foreground_color(Color::Red);
+    println!("EXCEPTION: PAGE FAULT");
+    println!("Accessed Address: {:?}", Cr2::read());
+    println!("{:#?}", stack_frame);
+    vga::set_foreground_color(Color::White);
+    hlt_loop();
+}
+
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut ExceptionStackFrame) {
     vga::set_foreground_color(Color::Red);
     println!("Breakpoint!\n{:#?}", stack_frame);
@@ -61,9 +77,6 @@ extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut ExceptionStackFra
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: &mut ExceptionStackFrame) {
-    vga::rainbow_next();
-    //print!(".");
-
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
@@ -87,7 +100,10 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: &mut Exceptio
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             match key {
-                DecodedKey::Unicode(character) => print!("{}", character),
+                DecodedKey::Unicode(character) => {
+                    print!("{}", character);
+                    vga::term::TERM.lock().read(character);
+                }
                 DecodedKey::RawKey(key) => print!("{:?}", key),
             }
         }
