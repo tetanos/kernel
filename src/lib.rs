@@ -12,31 +12,37 @@ mod serial;
 mod vga;
 
 #[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
-    loop {}
-}
-
-#[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    use interrupts::PICS;
-
     println!("Hi!");
     vga::ferris_say("This is TetanOS");
+    print!("Be careful, it's kinda rusty in here.");
+    init();
+}
 
-    interrupts::init();
+pub fn init() -> ! {
     gdt::init();
+    interrupts::init();
 
+    use interrupts::PICS;
     unsafe { PICS.lock().initialize() };
-
-    println!("Be careful, it's kinda rusty in here.");
-
     x86_64::instructions::interrupts::enable();
 
     loop {
         print!("-");
         for _ in 0..10000 {}
+    }
+}
+
+#[cfg(not(test))]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
+    hlt_loop()
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
     }
 }

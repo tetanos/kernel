@@ -75,5 +75,6 @@ extern "x86-interrupt" fn double_fault_handler(
     vga::set_foreground_color(Color::Red);
     println!("Double Fault! (Err {:#X})\n{:#?}", error_code, stack_frame);
     vga::set_foreground_color(Color::White);
-    loop {}
+
+    crate::hlt_loop();
 }
