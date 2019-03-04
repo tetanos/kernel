@@ -29,7 +29,7 @@ pub fn init() -> ! {
     x86_64::instructions::interrupts::enable();
 
     loop {
-        print!("-");
+        //print!("-");
         for _ in 0..10000 {}
     }
 }

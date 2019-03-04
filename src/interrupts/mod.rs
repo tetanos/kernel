@@ -22,6 +22,7 @@ lazy_static! {
 
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
+        idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
         unsafe {
             idt.double_fault
                 .set_handler_fn(double_fault_handler)
@@ -40,6 +41,7 @@ pub fn init() {
 #[repr(u8)]
 pub enum InterruptIndex {
     Timer = PIC_1_OFFSET,
+    Keyboard,
 }
 
 impl InterruptIndex {
@@ -60,11 +62,40 @@ extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut ExceptionStackFra
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: &mut ExceptionStackFrame) {
     vga::rainbow_next();
-    print!(".");
+    //print!(".");
 
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
+    }
+}
+
+extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: &mut ExceptionStackFrame) {
+    use pc_keyboard::{layouts, DecodedKey, Keyboard, ScancodeSet1};
+    use spin::Mutex;
+    use x86_64::instructions::port::Port;
+
+    lazy_static! {
+        static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
+            Mutex::new(Keyboard::new(layouts::Us104Key, ScancodeSet1));
+    }
+
+    let mut keyboard = KEYBOARD.lock();
+    let port = Port::new(0x60);
+
+    let scancode: u8 = unsafe { port.read() };
+    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
+        if let Some(key) = keyboard.process_keyevent(key_event) {
+            match key {
+                DecodedKey::Unicode(character) => print!("{}", character),
+                DecodedKey::RawKey(key) => print!("{:?}", key),
+            }
+        }
+    }
+
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
     }
 }
 
