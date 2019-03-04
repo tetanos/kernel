@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 use x86_64::structures::idt::{ExceptionStackFrame, InterruptDescriptorTable};
 
 use crate::gdt;
+use crate::print;
 use crate::println;
 use crate::vga;
 use crate::vga::buffer::Color;
@@ -20,6 +21,7 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
 
         idt.breakpoint.set_handler_fn(breakpoint_handler);
+        idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         unsafe {
             idt.double_fault
                 .set_handler_fn(double_fault_handler)
@@ -34,18 +36,44 @@ pub fn init() {
     IDT.load();
 }
 
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum InterruptIndex {
+    Timer = PIC_1_OFFSET,
+}
+
+impl InterruptIndex {
+    fn as_u8(self) -> u8 {
+        self as u8
+    }
+
+    fn as_usize(self) -> usize {
+        usize::from(self.as_u8())
+    }
+}
+
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut ExceptionStackFrame) {
     vga::set_foreground_color(Color::Red);
     println!("Breakpoint!\n{:#?}", stack_frame);
     vga::set_foreground_color(Color::White);
 }
 
+extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: &mut ExceptionStackFrame) {
+    vga::rainbow_next();
+    print!(".");
+
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
+    }
+}
+
 extern "x86-interrupt" fn double_fault_handler(
     stack_frame: &mut ExceptionStackFrame,
-    _error_code: u64,
+    error_code: u64,
 ) {
     vga::set_foreground_color(Color::Red);
-    println!("Double Fault!\n{:#?}", stack_frame);
+    println!("Double Fault! (Err {:#X})\n{:#?}", error_code, stack_frame);
     vga::set_foreground_color(Color::White);
     loop {}
 }

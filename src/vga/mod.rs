@@ -29,7 +29,10 @@ macro_rules! println {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }
 
 pub fn ferris_say(s: &str) {
@@ -44,7 +47,7 @@ pub fn ferris_say(s: &str) {
 
     for c in s.chars() {
         if c != ' ' {
-            WRITER.lock().rainbow_next();
+            rainbow_next();
         }
         print!("{}", c);
     }
@@ -54,12 +57,25 @@ pub fn ferris_say(s: &str) {
     set_foreground_color(Color::White);
 }
 
+pub fn rainbow_next() {
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        WRITER.lock().rainbow_next();
+    });
+}
+
 #[allow(dead_code)]
 pub fn set_foreground_color(color: Color) {
-    WRITER.lock().set_foreground_color(color);
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        WRITER.lock().set_foreground_color(color);
+    });
 }
 
 #[allow(dead_code)]
 pub fn set_background_color(color: Color) {
-    WRITER.lock().set_background_color(color);
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        WRITER.lock().set_background_color(color);
+    });
 }

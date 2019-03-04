@@ -31,9 +31,12 @@ pub extern "C" fn _start() -> ! {
 
     unsafe { PICS.lock().initialize() };
 
-    print!("Be careful, it's kinda rusty in here.");
+    println!("Be careful, it's kinda rusty in here.");
 
     x86_64::instructions::interrupts::enable();
 
-    loop {}
+    loop {
+        print!("-");
+        for _ in 0..10000 {}
+    }
 }
