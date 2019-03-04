@@ -1,5 +1,5 @@
 [package]
-name = "tetan_os"
+name = "kernel"
 version = "0.1.0"
 description = "An attempt at building an operating system, make sure you're vaxxed."
 authors = ["Alexandre Frigon <alexandre.frigon.1@gmail.com>"]
@@ -10,8 +10,13 @@ homepage = ""
 repository = "https://github.com/afrigon/TetanOS"
 readme = "https://github.com/afrigon/TetanOS/blob/master/README.md"
 license-file = "https://github.com/afrigon/TetanOS/blob/master/LICENSE"
-keywords = ["Operating", "system", "tetanus", "tetanos", "vaxx"]
+keywords = ["operating", "system", "os", "tetanus", "tetanos", "vaxx"]
 categories = ["no-std"]
+
+[lib]
+name = "kernel"
+path = "src/lib.rs"
+crate-type = ["staticlib"]
 
 [badges]
 travis-ci = { repository = "https://github.com/afrigon/TetanOS", branch = "master" }
@@ -31,6 +36,8 @@ array-init = "0.0.3"
 
 [package.metadata.bootimage]
 default-target = "targets/x86_64_unknown-none.json"
+output = "target/x86_64_unknown-none/debug/tetanos.bin"
+run-command = ["qemu-system-x86_64", "-drive", "format=raw,file={}"]
 
 [dependencies.lazy_static]
 version = "1.0"

@@ -1,3 +1,8 @@
+//! # The TetanOS Kernel
+//!
+//! An attempt at making a operating system.
+//! Make sure you are vaccinated before using.
+
 #![allow(unused_attributes)]
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(not(test), no_main)]
