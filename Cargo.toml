@@ -30,7 +30,7 @@ pc-keyboard = "0.3.1"
 array-init = "0.0.3"
 
 [package.metadata.bootimage]
-default-target = "x86_64.json"
+default-target = "targets/x86_64_unknown-none.json"
 
 [dependencies.lazy_static]
 version = "1.0"
