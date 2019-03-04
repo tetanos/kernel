@@ -42,7 +42,13 @@ pub fn ferris_say(s: &str) {
         / '-----' \
 "#;
 
-    println!("{}", s);
+    for c in s.chars() {
+        if c != ' ' {
+            WRITER.lock().rainbow_next();
+        }
+        print!("{}", c);
+    }
+
     set_foreground_color(Color::Red);
     println!("{}", ferris);
     set_foreground_color(Color::White);

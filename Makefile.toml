@@ -11,8 +11,7 @@ args = ["clippy"]
 
 [tasks.build]
 install_crate = "bootimage"
-command = "bootimage"
-args = ["build"]
+command = "./build.sh"
 dependencies = ["format"]
 
 [tasks.run]
