@@ -6,6 +6,7 @@
 
 use core::panic::PanicInfo;
 
+mod gdt;
 mod interrupts;
 mod serial;
 mod vga;
@@ -26,10 +27,9 @@ pub extern "C" fn _start() -> ! {
     vga::ferris_say("This is TetanOS");
 
     interrupts::init();
+    gdt::init();
 
     unsafe { PICS.lock().initialize() };
-
-    //x86_64::instructions::int3();
 
     print!("Be careful, it's kinda rusty in here.");
 
