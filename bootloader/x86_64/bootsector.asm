@@ -1,4 +1,4 @@
-ORG 0x7c00
+ORG 0x7c00              ; code is loaded at this offset
 SECTION .text
 USE16
 
@@ -17,7 +17,12 @@ bootsector:
     mov si, str_title
     call println
 
-    jmp branch_error
+
+; enable the A20 line with the fast A20 method
+a20:
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
 
 branch_success:
