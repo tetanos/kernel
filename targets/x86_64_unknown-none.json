@@ -8,11 +8,16 @@
     "target-c-int-width": "32",
     "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
     "env": "",
+    "dynamic--linking": false,
     "executables": true,
     "linker-flavor": "ld.lld",
     "linker": "rust-lld",
     "panic-strategy": "abort",
     "disable-redzone": true,
-    "features": "-mmx,-sse,+soft-float"
+    "features": "-mmx,-sse,+soft-float",
+    "relocation-model": "pic",
+    "no-default-libraries": true,
+    "position-independent-executables": false,
+    "allow-asm": true
 }
 
