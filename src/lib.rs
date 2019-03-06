@@ -8,6 +8,7 @@
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(unused_imports))]
 #![feature(abi_x86_interrupt)]
+#![feature(asm)]
 
 use core::panic::PanicInfo;
 
@@ -15,6 +16,9 @@ mod gdt;
 mod interrupts;
 mod serial;
 mod vga;
+
+pub mod arch;
+pub use arch::*;
 
 #[cfg(not(test))]
 #[no_mangle]
@@ -31,7 +35,7 @@ pub fn init() -> ! {
 
     use interrupts::PICS;
     unsafe { PICS.lock().initialize() };
-    x86_64::instructions::interrupts::enable();
+    interrupt::enable();
     vga::term::TERM.lock().init();
 
     hlt_loop();
@@ -46,6 +50,6 @@ fn panic(info: &PanicInfo) -> ! {
 
 pub fn hlt_loop() -> ! {
     loop {
-        x86_64::instructions::hlt();
+        x86_64::interrupt::halt();
     }
 }
