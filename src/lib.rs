@@ -8,6 +8,7 @@
 #![cfg_attr(not(test), no_main)]
 #![cfg_attr(test, allow(unused_imports))]
 #![feature(abi_x86_interrupt)]
+#![feature(lang_items)]
 
 use core::panic::PanicInfo;
 
@@ -18,7 +19,7 @@ mod vga;
 
 #[cfg(not(test))]
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+pub extern "C" fn kernel_main() -> ! {
     println!("Hi!");
     vga::ferris_say("This is TetanOS");
     println!("Be careful, it's kinda rusty in here.");
@@ -49,3 +50,7 @@ pub fn hlt_loop() -> ! {
         x86_64::instructions::hlt();
     }
 }
+
+#[lang = "eh_personality"]
+#[no_mangle]
+pub extern "C" fn eh_personality() {}

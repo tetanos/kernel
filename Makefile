@@ -13,16 +13,18 @@ KERNEL_NASM?= -D KERNEL=$(BUILD_DIR)/kernel.bin
 pre-build: format
 	mkdir -p $(DEST_DIR)
 	mkdir -p $(BUILD_DIR)
-	cp src/lib.rs src/main.rs
+	#cp src/lib.rs src/main.rs
 
 post-build:
-	rm -rf build src/main.rs
+	rm -rf build #src/main.rs
 
 bootloader: pre-build build/bootloader-$(ARCH).bin
 	mv build/bootloader-$(ARCH).bin $(DEST_DIR)/bootloader-$(ARCH).bin
 	$(MAKE) post-build
 
-build: pre-build build/$(FILENAME).bin
+kernel: pre-build build/kernel-$(ARCH).o
+
+build: pre-build build/$(FILENAME).a
 	mv build/$(FILENAME).bin $(FILEPATH).bin
 	make post-build
 
@@ -37,6 +39,8 @@ run-bootloader: bootloader
 
 clean:
 	cargo clean
+	rm -rf Cargo.lock
+	$(MAKE) post-build
 
 doc:
 	cargo doc --no-deps --open
@@ -60,6 +64,9 @@ vbox: build/$(FILENAME).bin
 
 build/bootloader-$(ARCH).bin:
 	nasm -f bin -D ARCH_$(ARCH) $(NASM_INCLUDES) -o $@ bootloader/$(ARCH)/disk.asm
+
+build/kernel-$(ARCH).a:
+	cargo xbuild --target=targets/x86_64_unknown-none.json
 
 build/$(FILENAME).bin: build/bootloader-$(ARCH).bin
 	nasm -f bin -D ARCH_$(ARCH) $(KERNEL_NASM) $(NASM_INCLUDES) -o $@ bootloader/$(ARCH)/disk.asm

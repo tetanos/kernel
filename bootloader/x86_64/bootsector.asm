@@ -1,4 +1,4 @@
-ORG 0x7c00              ; code is loaded at this offset
+;ORG 0x7c00              ; code is loaded at this offset
 SECTION .text
 USE16
 
@@ -11,7 +11,7 @@ bootsector:
     mov es, ax
     mov ss, ax
 
-    mov sp, 0x7c00      ; initialize the stack
+    mov sp, 0x7c0       ; initialize the stack
 
     call print_crlf
     mov si, str_title
@@ -26,7 +26,7 @@ a20:
 
 
 branch_success:
-    jmp stage2
+;    jmp stage2
 
 
 branch_error:
@@ -106,5 +106,5 @@ disk_access_paquet:
 .address: dq 0          ; logical block address to read
 
 times 510-($-$$) db 0   ; padding to offset 510
-dw 0xaa55               ; magic bootsector number 0xaa55
+dw 0xaa55               ; magic bootsector number
 
