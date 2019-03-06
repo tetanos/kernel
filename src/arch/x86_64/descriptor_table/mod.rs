@@ -1,5 +1,6 @@
-use super::hardware;
 use core::mem::size_of;
+
+use super::hardware;
 
 /// Global Descriptor Table (GDT)
 pub mod global;

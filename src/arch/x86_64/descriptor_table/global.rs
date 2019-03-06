@@ -1,7 +1,8 @@
+use core::mem::size_of;
+
 use super::hardware::cpu;
 use super::DescriptorTablePointer;
 use super::RingLevel;
-use core::mem::size_of;
 
 /// # Global Table Descriptor Reference
 ///

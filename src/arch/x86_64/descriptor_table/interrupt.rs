@@ -1,7 +1,8 @@
+use core::mem::size_of;
+
 use super::DescriptorTablePointer;
 use super::RingLevel;
 use crate::arch::x86_64::interrupt::*;
-use core::mem::size_of;
 
 /// # Interrupt Descriptor Table Reference
 ///

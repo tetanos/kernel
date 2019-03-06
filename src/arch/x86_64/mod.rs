@@ -6,3 +6,6 @@ pub mod hardware;
 
 /// Descriptor Tables
 pub mod descriptor_table;
+
+/// Arch entry point and initialization
+pub mod start;
