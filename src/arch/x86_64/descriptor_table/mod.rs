@@ -14,7 +14,7 @@ pub mod interrupt;
 /// # Descriptor Table pointer
 ///
 /// Represent a 32 bit descriptor table into memory.
-#[repr(C, packed)]
+#[repr(packed)]
 pub struct DescriptorTablePointer<EntryType> {
     pub limit: u16,
     pub address: *const EntryType,
