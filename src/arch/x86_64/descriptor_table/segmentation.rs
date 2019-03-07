@@ -100,11 +100,11 @@ pub enum Granularity {
     Page = 1,
 }
 
-pub struct Selector(pub u8);
+pub struct Selector(pub u16);
 
 impl Selector {
     pub const fn new(index: Type, ring: RingLevel) -> Self {
-        Selector((index as u8) << 3 | ring as u8)
+        Selector(((index as u8) << 3 | ring as u8) as u16)
     }
 }
 

@@ -17,63 +17,63 @@ static mut GDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer 
 ///
 /// This is the table containing information about memory segment.
 static mut GDT: [Descriptor; 9] = [
-    /// Zero
+    // Zero
     Descriptor::new(
         0,
         0,
         Access::new(false, RingLevel::Zero, false, false, false, false, false),
         Flag(cpu::Mode::Real, Granularity::Byte),
     ),
-    /// Kernel Code
+    // Kernel Code
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Zero, true, true, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// Kernel Data
+    // Kernel Data
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Zero, true, false, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// Kernel Thread Local Storage
+    // Kernel Thread Local Storage
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Zero, true, false, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// User Code
+    // User Code
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Three, true, true, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// User Data
+    // User Data
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Three, true, false, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// User Thread Local Storage
+    // User Thread Local Storage
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Three, true, false, false, true, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// Task State Segment
+    // Task State Segment
     Descriptor::new(
         0,
         0,
         Access::new(true, RingLevel::Three, false, false, false, false, false),
         Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    /// Task State Segment High
+    // Task State Segment High
     Descriptor::new(
         0,
         0,

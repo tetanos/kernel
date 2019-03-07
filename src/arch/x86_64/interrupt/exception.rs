@@ -21,6 +21,7 @@ pub fn non_maskable() {
 
 /// # Breakpoint Exception handler
 pub fn breakpoint() {
+    println!("mr. break here, doing good work very cool IDT working.");
     loop {
         super::halt();
     }
@@ -56,6 +57,7 @@ pub fn device_not_available() {
 
 /// # Double Fault Exception handler
 pub fn double_fault() {
+    println!("Hello this is double faulty boi talking reporting on working IDT, very cool.");
     loop {
         super::halt();
     }
