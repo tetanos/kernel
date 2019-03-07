@@ -11,6 +11,12 @@ pub mod local;
 /// Interrupt Descriptor Table (IDT)
 pub mod interrupt;
 
+/// Segmentation operations
+pub mod segmentation;
+
+/// Task State Segment
+pub mod task_state;
+
 /// # Descriptor Table pointer
 ///
 /// Represent a 32 bit descriptor table into memory.
@@ -37,7 +43,7 @@ impl<T> DescriptorTablePointer<T> {
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
-enum RingLevel {
+pub enum RingLevel {
     Zero = 0,
     One = 1,
     Two = 2,

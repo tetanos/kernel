@@ -1,74 +1,84 @@
 use core::mem::size_of;
 
 use super::hardware::cpu;
+use super::segmentation::*;
 use super::DescriptorTablePointer;
 use super::RingLevel;
 
 /// # Global Table Descriptor Reference
 ///
 /// A reference to the gdt object in memory
-static mut GDT_REF: DescriptorTablePointer<SegmentDescriptor> = DescriptorTablePointer {
+static mut GDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer {
     limit: 0,
-    address: 0 as *const SegmentDescriptor,
+    address: 0 as *const Descriptor,
 };
 
 /// # Global Descriptor Table
 ///
 /// This is the table containing information about memory segment.
-static mut GDT: [SegmentDescriptor; 9] = [
-    SegmentDescriptor::new(
+static mut GDT: [Descriptor; 9] = [
+    /// Zero
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(false, RingLevel::Zero, false, false, false, false, false),
-        SegmentFlag(cpu::Mode::Real, SegmentGranularity::Byte),
+        Access::new(false, RingLevel::Zero, false, false, false, false, false),
+        Flag(cpu::Mode::Real, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// Kernel Code
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Zero, true, true, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Zero, true, true, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// Kernel Data
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Zero, true, false, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Zero, true, false, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// Kernel Thread Local Storage
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Zero, true, false, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Zero, true, false, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// User Code
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Three, true, true, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Three, true, true, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// User Data
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Three, true, false, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Three, true, false, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// User Thread Local Storage
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Three, true, false, false, true, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Three, true, false, false, true, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// Task State Segment
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(true, RingLevel::Three, false, false, false, false, false),
-        SegmentFlag(cpu::Mode::Long, SegmentGranularity::Byte),
+        Access::new(true, RingLevel::Three, false, false, false, false, false),
+        Flag(cpu::Mode::Long, Granularity::Byte),
     ),
-    SegmentDescriptor::new(
+    /// Task State Segment High
+    Descriptor::new(
         0,
         0,
-        SegmentAccess::new(false, RingLevel::Zero, false, false, false, false, false),
-        SegmentFlag(cpu::Mode::Real, SegmentGranularity::Byte),
+        Access::new(false, RingLevel::Zero, false, false, false, false, false),
+        Flag(cpu::Mode::Real, Granularity::Byte),
     ),
 ];
 
@@ -76,105 +86,24 @@ static mut GDT: [SegmentDescriptor; 9] = [
 ///
 /// Loads the gdt into memory
 pub unsafe fn init() {
-    GDT_REF.limit = (GDT.len() * size_of::<SegmentDescriptor>() - 1) as u16;
-    GDT_REF.address = GDT.as_ptr() as *const SegmentDescriptor;
+    GDT_REF.limit = (GDT.len() * size_of::<Descriptor>() - 1) as u16;
+    GDT_REF.address = GDT.as_ptr() as *const Descriptor;
 
     super::lgdt(&GDT_REF);
-}
 
-/// # Segment Type
-///
-/// Type associated with a memory segment entry in the global descriptor table
-#[allow(dead_code)]
-#[derive(Copy, Clone, Debug)]
-#[repr(u8)]
-pub enum SegmentType {
-    Null = 0,
-    KernelCode = 1,
-    KernelData = 2,
-    KernelThreadLocalStorage = 3,
-    UserCode = 4,
-    UserData = 5,
-    UserThreadLocalStorage = 6,
-    TaskState = 7,
-    /// The task state segment must be 16 bytes long
-    TaskStateHigh = 8,
-}
+    // We can now access our TSS, which is a thread local
+    // GDT[GDT_TSS].set_offset(&TSS as *const _ as u32);
+    // GDT[GDT_TSS].set_limit(mem::size_of::<TaskState>() as u32);
 
-/// # Memory Segment Entry
-///
-/// Entry in the global , for historic reason this structure is using a weird layout.
-///
-#[derive(Copy, Clone, Debug)]
-#[repr(packed)]
-struct SegmentDescriptor {
-    limit_l: u16,
-    address_l: u16,
-    address_m: u8,
-    access: u8,
-    flags_limit_h: u8,
-    address_h: u8,
-}
+    // set tss stack
 
-impl SegmentDescriptor {
-    const fn new(address: u32, limit: u32, access: SegmentAccess, flags: SegmentFlag) -> Self {
-        SegmentDescriptor {
-            limit_l: limit as u16,
-            address_l: address as u16,
-            address_m: (address >> 16) as u8,
-            access: access.0,
-            flags_limit_h: flags.value() & 0xf0 | (limit >> 16) as u8 & 0x0f,
-            address_h: (address >> 24) as u8,
-        }
-    }
-}
+    //set_cs(Selector::new(Type::KernelCode, RingLevel::Zero));
+    load_ds(Selector::new(Type::KernelData, RingLevel::Zero));
+    load_es(Selector::new(Type::KernelData, RingLevel::Zero));
+    load_fs(Selector::new(Type::KernelThreadLocal, RingLevel::Zero));
+    load_gs(Selector::new(Type::KernelData, RingLevel::Zero));
+    load_ss(Selector::new(Type::KernelData, RingLevel::Zero));
 
-/// # Segment Access
-///
-/// Represent the access bits of the segment descriptor.
-#[derive(Copy, Clone, Debug)]
-struct SegmentAccess(u8);
-
-impl SegmentAccess {
-    const fn new(
-        present: bool,
-        ring: RingLevel,
-        system: bool,
-        executable: bool,
-        conforming: bool,
-        privileged: bool,
-        dirty: bool,
-    ) -> Self {
-        SegmentAccess(
-            (present as u8) << 7
-                | (ring as u8 & 3) << 5
-                | (system as u8) << 4
-                | (executable as u8) << 3
-                | (conforming as u8) << 2
-                | (privileged as u8) << 1
-                | dirty as u8,
-        )
-    }
-}
-
-/// # Segment Flag
-///
-/// Represent the flag bits of the segment descriptor.
-#[derive(Copy, Clone, Debug)]
-struct SegmentFlag(cpu::Mode, SegmentGranularity);
-
-impl SegmentFlag {
-    const fn value(&self) -> u8 {
-        ((self.0 as u8 & 1) << 1 | (self.0 as u8 & 2) >> 1) << 5 | (self.1 as u8) << 7
-    }
-}
-
-/// Granularity of the limit of a segment descriptor. Byte granularity represent 1 byte blocks and
-/// page granularity represents 4kb blocks
-#[allow(dead_code)]
-#[derive(Copy, Clone, Debug)]
-#[repr(u8)]
-enum SegmentGranularity {
-    Byte = 0,
-    Page = 1,
+    // Load the task register
+    //task_state::load_tr(Selector::new(Type::TaskState, RingLevel::Zero));
 }

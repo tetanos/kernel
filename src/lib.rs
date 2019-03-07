@@ -10,7 +10,6 @@
 #![feature(asm)]
 #![feature(lang_items)]
 
-mod serial;
 #[macro_use]
 mod vga;
 
