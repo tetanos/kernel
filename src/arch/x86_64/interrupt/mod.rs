@@ -25,11 +25,11 @@ pub fn disable() {
     }
 }
 
-/// # Interrupt Call
+/// # Syscall
 ///
-/// Call an interrupt directly using the `int` asm instruction.
-pub unsafe fn int(value: u8) {
-    asm!("int 0" : : "0"(value) : : "intel" : "volatile")
+/// Call the system call interrupt.
+pub fn syscall() {
+    unsafe { asm!("int 0x80" : : : : "intel" : "volatile") }
 }
 
 /// # Breakpoint
@@ -37,6 +37,13 @@ pub unsafe fn int(value: u8) {
 /// Trigger the breakpoint trap.
 pub fn breakpoint() {
     unsafe { asm!("int 3" : : : : "intel" : "volatile") }
+}
+
+/// # Interrupt Return
+///
+/// Return from the current interrupt using the `iretq` asm instruction.
+pub fn ireturn() {
+    unsafe { asm!("iretq" : : : : "intel" : "volatile") }
 }
 
 /// # Halt the system

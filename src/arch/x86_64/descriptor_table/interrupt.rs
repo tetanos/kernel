@@ -7,16 +7,16 @@ use crate::arch::x86_64::interrupt::*;
 /// # Interrupt Descriptor Table Reference
 ///
 /// A reference to the idt object in memory.
-static mut IDT_REF: DescriptorTablePointer<DescriptorEntry> = DescriptorTablePointer {
+static mut IDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer {
     limit: 0,
-    address: 0 as *const DescriptorEntry,
+    address: 0 as *const Descriptor,
 };
 
 /// # Interrupt Descriptor Table
 ///
 /// This is a table containing pointers to handler function of exceptions, interrupt, syscalls,
 /// etc.
-static mut IDT: [DescriptorEntry; 256] = [DescriptorEntry::new(); 256];
+static mut IDT: [Descriptor; 256] = [Descriptor::new(); 256];
 
 pub unsafe fn init() {
     IDT_REF.limit = (IDT.len() * size_of::<DescriptorEntry>() - 1) as u16;
@@ -32,8 +32,7 @@ pub unsafe fn init() {
     IDT[6].set_handler(exception::invalid_opcode);
     IDT[7].set_handler(exception::device_not_available);
     IDT[8].set_handler(exception::double_fault);
-    // removed
-    // IDT[9].set_handler(exception::coprocessor_segment_overrun);
+    // 9 removed: IDT[9].set_handler(exception::coprocessor_segment_overrun);
     IDT[10].set_handler(exception::invalid_tss);
     IDT[11].set_handler(exception::segment_not_present);
     IDT[12].set_handler(exception::stack_segment);
@@ -110,7 +109,7 @@ impl DescriptorAttribute {
 /// An entry in the interrupt descriptor table.
 #[derive(Copy, Clone, Debug)]
 #[repr(packed)]
-struct DescriptorEntry {
+struct Descriptor {
     offset_l: u16,
     selector: u16,
     zero1: u8,
@@ -120,9 +119,9 @@ struct DescriptorEntry {
     zero2: u32,
 }
 
-impl DescriptorEntry {
+impl Descriptor {
     const fn new() -> Self {
-        DescriptorEntry {
+        Descriptor {
             offset_l: 0,
             selector: 0,
             zero1: 0,
