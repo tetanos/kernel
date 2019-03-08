@@ -5,17 +5,13 @@ use super::segmentation::*;
 use super::DescriptorTablePointer;
 use super::RingLevel;
 
-/// # Global Table Descriptor Reference
-///
 /// A reference to the gdt object in memory
 static mut GDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer {
     limit: 0,
     address: 0 as *const Descriptor,
 };
 
-/// # Global Descriptor Table
-///
-/// This is the table containing information about memory segment.
+/// Table containing information about memory segments.
 static mut GDT: [Descriptor; 9] = [
     // Zero
     Descriptor::new(
@@ -82,8 +78,6 @@ static mut GDT: [Descriptor; 9] = [
     ),
 ];
 
-/// Initialization
-///
 /// Loads the gdt into memory
 pub unsafe fn init() {
     GDT_REF.limit = (GDT.len() * size_of::<Descriptor>() - 1) as u16;

@@ -2,25 +2,20 @@ use core::mem::size_of;
 
 use super::DescriptorTablePointer;
 use super::RingLevel;
-use crate::arch::x86_64::interrupt::*;
+use crate::arch::x86_64::interrupt::{exception, request, syscall};
 
-/// # Interrupt Descriptor Table Reference
-///
 /// A reference to the idt object in memory.
 static mut IDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer {
     limit: 0,
     address: 0 as *const Descriptor,
 };
 
-/// # Interrupt Descriptor Table
-///
-/// This is a table containing pointers to handler function of exceptions, interrupt, syscalls,
-/// etc.
+/// table containing pointers to handler function of exceptions, interrupt and syscalls
 static mut IDT: [Descriptor; 256] = [Descriptor::new(); 256];
 
 pub unsafe fn init() {
-    IDT_REF.limit = (IDT.len() * size_of::<DescriptorEntry>() - 1) as u16;
-    IDT_REF.address = IDT.as_ptr() as *const DescriptorEntry;
+    IDT_REF.limit = (IDT.len() * size_of::<Descriptor>() - 1) as u16;
+    IDT_REF.address = IDT.as_ptr() as *const Descriptor;
 
     // Exceptions interrupt
     IDT[0].set_handler(exception::divide_by_zero);
@@ -72,7 +67,7 @@ pub unsafe fn init() {
     super::lidt(&IDT_REF);
 }
 
-/// # Interrupt Descriptor Attribute Type
+/// Attribute type of the descriptor.
 #[allow(dead_code)]
 #[repr(u8)]
 enum DescriptorAttributeType {
@@ -82,8 +77,6 @@ enum DescriptorAttributeType {
     Trap = 0xf,
 }
 
-/// Interrupt Descriptor Attribute
-///
 /// Represent the type attribute bits of the interrupt descriptor.
 #[derive(Copy, Clone, Debug)]
 struct DescriptorAttribute(u8);
@@ -104,8 +97,6 @@ impl DescriptorAttribute {
     }
 }
 
-/// Interrupt Descriptor Entry
-///
 /// An entry in the interrupt descriptor table.
 #[derive(Copy, Clone, Debug)]
 #[repr(packed)]

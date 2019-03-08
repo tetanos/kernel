@@ -1,9 +1,7 @@
 use super::hardware::cpu;
 use super::RingLevel;
 
-/// # Segment Type
-///
-/// Type associated with a memory segment entry in the global descriptor table
+/// Type associated with a memory segment entry in the GDT
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
@@ -20,10 +18,9 @@ pub enum Type {
     TaskStateHigh = 8,
 }
 
-/// # Memory Segment Entry
+/// Entry in the GDT.
 ///
-/// Entry in the global , for historic reason this structure is using a weird layout.
-///
+/// For historic reason this structure is using a weird layout.
 #[derive(Copy, Clone, Debug)]
 #[repr(packed)]
 pub struct Descriptor {
@@ -48,8 +45,6 @@ impl Descriptor {
     }
 }
 
-/// # Segment Access
-///
 /// Represent the access bits of the segment descriptor.
 #[derive(Copy, Clone, Debug)]
 pub struct Access(u8);
@@ -76,8 +71,6 @@ impl Access {
     }
 }
 
-/// # Segment Flag
-///
 /// Represent the flag bits of the segment descriptor.
 #[derive(Copy, Clone, Debug)]
 pub struct Flag(pub cpu::Mode, pub Granularity);
@@ -88,10 +81,9 @@ impl Flag {
     }
 }
 
-/// # Segment Granularity
-///
-/// The granularity is the unit for the limit attribute of a segment. Byte mode uses 1 byte blocks
-/// and page mode uses 4kb block.
+/// Unit for the limit attribute of a segment.
+/// * Byte mode uses 1 byte blocks
+/// * Page mode uses 4kb blocks
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
@@ -100,6 +92,7 @@ pub enum Granularity {
     Page = 1,
 }
 
+/// Index of a segment in the GDT.
 pub struct Selector(pub u16);
 
 impl Selector {
@@ -108,22 +101,32 @@ impl Selector {
     }
 }
 
+/// Load a segment into the code segment register.
+pub unsafe fn load_cs(selector: Selector) {
+    // TODO
+}
+
+/// Load a segment into the stack segment register.
 pub unsafe fn load_ss(selector: Selector) {
     asm!("movw $0, %ss " :: "r"(selector.0) : "memory" : "volatile");
 }
 
+/// Load a segment into the data segment register.
 pub unsafe fn load_ds(selector: Selector) {
     asm!("movw $0, %ds " :: "r"(selector.0) : "memory" : "volatile");
 }
 
+/// Load a segment into the extra segment register.
 pub unsafe fn load_es(selector: Selector) {
     asm!("movw $0, %es " :: "r"(selector.0) : "memory" : "volatile");
 }
 
+/// Load a segment into the F segment register.
 pub unsafe fn load_fs(selector: Selector) {
     asm!("movw $0, %fs " :: "r"(selector.0) : "memory" : "volatile");
 }
 
+/// Load a segment into the G segment register.
 pub unsafe fn load_gs(selector: Selector) {
     asm!("movw $0, %gs " :: "r"(selector.0) : "memory" : "volatile");
 }

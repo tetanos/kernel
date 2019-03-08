@@ -1,34 +1,16 @@
 use super::descriptor_table;
 use crate::kernel_main;
 
-use super::hardware::cpu::*;
-
+/// Entry point of the kernel for the x86_64 architecture.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    //    descriptor_table::global::init();
     descriptor_table::interrupt::init();
+    //    descriptor_table::global::init();
 
-    println!(
-        "{:?}",
-        Regsiters {
-            rax: 123,
-            rbx: 123,
-            rcx: 123,
-            rdx: 123,
-            rsi: 123,
-            rdi: 123,
-            rbp: 123,
-            rsp: 123,
-            r8: 123,
-            r9: 123,
-            r10: 123,
-            r11: 123,
-            r12: 123,
-            r13: 123,
-            r14: 123,
-            r15: 123,
-        }
-    );
+    println!("test");
+    super::interrupt::breakpoint();
+    println!("t123est");
+
     super::interrupt::syscall();
     kernel_main()
 }

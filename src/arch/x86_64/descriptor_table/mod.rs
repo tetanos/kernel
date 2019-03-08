@@ -17,8 +17,6 @@ pub mod segmentation;
 /// Task State Segment
 pub mod task_state;
 
-/// # Descriptor Table pointer
-///
 /// Represent a 32 bit descriptor table into memory.
 #[repr(packed)]
 pub struct DescriptorTablePointer<EntryType> {
@@ -37,9 +35,9 @@ impl<T> DescriptorTablePointer<T> {
     }
 }
 
-/// # Ring Level
+/// Privilege level required to interact with a descriptor segment.
 ///
-/// Privilege level required to interact with a descriptor segment
+/// Lower is better.
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
@@ -50,27 +48,21 @@ pub enum RingLevel {
     Three = 3,
 }
 
-/// # Load GDT
-///
-/// Load the global offset table into memory using the `lgdt` asm instruction.
+/// Load the global offset table into memory.
 pub fn lgdt<T>(gdt: &DescriptorTablePointer<T>) {
     unsafe {
         asm!("lgdt ($0)" :: "r" (gdt) : "memory");
     }
 }
 
-/// # Load LDT
-///
-/// Load the local descriptor table into memory using the `lldt` asm instruction.
+/// Load the local descriptor table into memory.
 pub fn lldt<T>(ldt: &DescriptorTablePointer<T>) {
     unsafe {
         asm!("lldt ($0)" :: "r" (ldt) : "memory");
     }
 }
 
-/// # Load IDT
-///
-/// Load the interrupt descriptor table into memory using the `lidt` asm instruction.
+/// Load the interrupt descriptor table into memory.
 pub fn lidt<T>(idt: &DescriptorTablePointer<T>) {
     unsafe {
         asm!("lidt ($0)" :: "r" (idt) : "memory");

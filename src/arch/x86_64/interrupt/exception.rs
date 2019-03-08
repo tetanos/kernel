@@ -1,141 +1,156 @@
-/// # Division by Zero Exception handler
-pub fn divide_by_zero() {
-    loop {
-        super::halt();
+use super::InterruptRegisters;
+use super::Registers;
+
+/// Memory representation of the context during an exception interrupt.
+#[derive(Debug, Copy, Clone)]
+#[repr(packed)]
+struct ExceptionContext {
+    registers: Registers,
+    code: usize,
+    interrupt_registers: InterruptRegisters,
+}
+
+impl ExceptionContext {
+    fn dump(&self) {
+        println!("{:#x?}", &self);
     }
 }
 
-/// # Debug Exception handler
-pub fn debug() {
-    loop {
-        super::halt();
+macro_rules! exception_handler {
+    ($name: ident, $context: ident, $callback: block) => {
+        pub unsafe fn $name() {
+            unsafe fn handler($context: &ExceptionContext) {
+                $callback
+            }
+
+            Registers::push();
+
+            let rsp: usize;
+            asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
+
+            handler(&*(rsp as *const ExceptionContext));
+
+            Registers::pop();
+            super::ireturn();
+        }
     }
 }
 
-/// # Non Maskable Interrupt Exception handler (NMI)
-pub fn non_maskable() {
-    loop {
-        super::halt();
-    }
-}
+/// Division by Zero Exception handler
+exception_handler!(divide_by_zero, context, {
+    context.dump();
+});
 
-/// # Breakpoint Exception handler
-pub fn breakpoint() {
-    println!("mr. break here, doing good work very cool IDT working.");
-    loop {
-        super::halt();
-    }
-}
+/// Debug Exception handler
+exception_handler!(debug, context, {
+    println!("Debug trap");
+    context.dump();
+});
 
-/// # Overflow Exception handler
-pub fn overflow() {
-    loop {
-        super::halt();
-    }
-}
+/// Non Maskable Interrupt Exception handler (NMI)
+exception_handler!(non_maskable, context, {
+    println!("Non-maskable interrupt");
+    context.dump();
+});
 
-/// # Bound Check Exception handler
-pub fn bound_check() {
-    loop {
-        super::halt();
-    }
-}
+/// Breakpoint Exception handler
+exception_handler!(breakpoint, context, {
+    println!("Breakpoint trap");
+    context.dump();
+});
 
-/// # Invalid Opcode Exception handler
-pub fn invalid_opcode() {
-    loop {
-        super::halt();
-    }
-}
+/// Overflow Exception handler
+exception_handler!(overflow, context, {
+    println!("Overflow trap");
+    context.dump();
+});
 
-/// # Device Not Available Exception handler
-pub fn device_not_available() {
-    loop {
-        super::halt();
-    }
-}
+/// Bound Check Exception handler
+exception_handler!(bound_check, context, {
+    println!("Bound check fault");
+    context.dump();
+});
 
-/// # Double Fault Exception handler
-pub fn double_fault() {
-    println!("Hello this is double faulty boi talking reporting on working IDT, very cool.");
-    loop {
-        super::halt();
-    }
-}
+/// Invalid Opcode Exception handler
+exception_handler!(invalid_opcode, context, {
+    println!("Invalid Opcode fault");
+    context.dump();
+});
 
-/// # Invalid TSS Exception handler
-pub fn invalid_tss() {
-    loop {
-        super::halt();
-    }
-}
+/// Device Not Available Exception handler
+exception_handler!(device_not_available, context, {
+    println!("Device not available fault");
+    context.dump();
+});
 
-/// # Segment Not Present Exception handler
-pub fn segment_not_present() {
-    loop {
-        super::halt();
-    }
-}
+/// Double Fault Exception handler
+exception_handler!(double_fault, context, {
+    println!("Double fault");
+    context.dump();
+});
 
-/// # Stack Segment Exception handler
-pub fn stack_segment() {
-    loop {
-        super::halt();
-    }
-}
+/// Invalid TSS Exception handler
+exception_handler!(invalid_tss, context, {
+    println!("Invalid TSS fault");
+    context.dump();
+});
 
-/// # Protection Exception handler
-pub fn protection() {
-    loop {
-        super::halt();
-    }
-}
+/// Segment Not Present Exception handler
+exception_handler!(segment_not_present, context, {
+    println!("Segment not present fault");
+    context.dump();
+});
 
-/// # Page Fault Exception handler
-pub fn page() {
-    loop {
-        super::halt();
-    }
-}
+/// Stack Segment Exception handler
+exception_handler!(stack_segment, context, {
+    println!("Stack segment fault");
+    context.dump();
+});
 
-/// # Floating Point Exception handler
-pub fn floating_point() {
-    loop {
-        super::halt();
-    }
-}
+/// Protection Exception handler
+exception_handler!(protection, context, {
+    println!("General protection fault");
+    context.dump();
+});
 
-/// # Alignment Check Exception handler
-pub fn alignment_check() {
-    loop {
-        super::halt();
-    }
-}
+/// Page Fault Exception handler
+exception_handler!(page, context, {
+    println!("Page fault");
+    context.dump();
+});
 
-/// # Machine Check Exception handler
-pub fn machine_check() {
-    loop {
-        super::halt();
-    }
-}
+/// Floating Point Exception handler
+exception_handler!(floating_point, context, {
+    println!("Floating point exception");
+    context.dump();
+});
 
-/// # SIMD Exception handler
-pub fn simd() {
-    loop {
-        super::halt();
-    }
-}
+/// Alignment Check Exception handler
+exception_handler!(alignment_check, context, {
+    println!("Alignment check fault");
+    context.dump();
+});
 
-/// # Virtualization Exception handler
-pub fn virtualization() {
-    loop {
-        super::halt();
-    }
-}
+/// Machine Check Exception handler
+exception_handler!(machine_check, context, {
+    println!("Machine check fault");
+    context.dump();
+});
 
-/// # Security Exception handler
-pub fn security() {
-    loop {
-        super::halt();
-    }
-}
+/// SIMD Exception handler
+exception_handler!(simd, context, {
+    println!("SIMD floating point exception");
+    context.dump();
+});
+
+/// Virtualization Exception handler
+exception_handler!(virtualization, context, {
+    println!("Virtualization exception");
+    context.dump();
+});
+
+/// Security Exception handler
+exception_handler!(security, context, {
+    println!("Security exception");
+    context.dump();
+});

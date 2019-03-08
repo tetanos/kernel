@@ -1,74 +1,90 @@
-use core::fmt;
-
+/// Enumeration of the different mode the cpu can use.
+///
+/// This code will probably always be runing in long mode.
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
 pub enum Mode {
+    /// 16 bits Real Mode
     Real = 0,
+    /// 32 bits Protected Mode
     Protected = 1,
+    /// 64 bits Long Mode
     Long = 2,
 }
 
-#[allow(dead_code)]
+/// Representation of the cpu registers at a moment in time.
+///
+/// These values are not in sync with the actual registers.
+#[derive(Copy, Clone, Debug)]
 #[repr(packed)]
-pub struct Regsiters {
+pub struct Registers {
     pub rax: usize,
-    pub rbx: usize,
     pub rcx: usize,
     pub rdx: usize,
-    pub rsi: usize,
     pub rdi: usize,
-    pub rbp: usize,
-    pub rsp: usize,
+    pub rsi: usize,
     pub r8: usize,
     pub r9: usize,
     pub r10: usize,
     pub r11: usize,
+
+    pub rbx: usize,
+    pub rbp: usize,
     pub r12: usize,
     pub r13: usize,
     pub r14: usize,
     pub r15: usize,
 }
 
-impl fmt::Debug for Registers {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Registers {{ rax: {:>016x}, rbx: {:>016x}, rcx: {:>016x}, rdx: {:>016x}, rsi: {:>016x}, rdi: {:>016x}, rbp: {:>016x}, rsp: {:>016x}, r8: {:>016x}, r9: {:>016x}, r10: {:>016x}, r11: {:>016x}, r12: {:>016x}, r13: {:>016x}, r14: {:>016x}, r15: {:>016x} }}",
-            self.rax,
-            self.rbx,
-            self.rcx,
-            self.rdx,
-            self.rsi,
-            self.rdi,
-            self.rbp,
-            self.rsp,
-            self.r8,
-            self.r9,
-            self.r10,
-            self.r11,
-            self.r12,
-            self.r13,
-            self.r14,
-            self.r15
-        )
-        let mut s = f.debug_struct("Registers");
-        s.field("rax", &Hex(self.rax));
-        s.field("rbx", &Hex(self.rbx));
-        s.field("rcx", &Hex(self.rcx));
-        s.field("rdx", &Hex(self.rdx));
-        s.field("rsi", &Hex(self.rsi));
-        s.field("rdi", &Hex(self.rdi));
-        s.field("rbp", &Hex(self.rbp));
-        s.field("rsp", &Hex(self.rsp));
-        s.field("r8", &Hex(self.r8));
-        s.field("r9", &Hex(self.r9));
-        s.field("r10", &Hex(self.r10));
-        s.field("r11", &Hex(self.r11));
-        s.field("r12", &Hex(self.r12));
-        s.field("r13", &Hex(self.r13));
-        s.field("r14", &Hex(self.r14));
-        s.field("r15", &Hex(self.r15));
-        s.finish()
+impl Registers {
+    /// Push all the registers onto the stack.
+    ///
+    /// > **Caution:** this method is very unsafe, you must call Registers::pop before calling any
+    /// other methods or you will hit undefined opcodes.
+    ///
+    /// The idea is to line everything up to cast the address of the stack pointer as Self.
+    #[inline(always)]
+    pub unsafe fn push() {
+        asm!(
+        "push rax
+         push rcx
+         push rdx
+         push rdi
+         push rsi
+         push r8
+         push r9
+         push r10
+         push r11
+         push rbx
+         push rbp
+         push r12
+         push r13
+         push r14
+         push r15"
+        : : : : "intel", "volatile");
+    }
+
+    /// This method will pop an item into every register.
+    ///
+    /// Should be called after Registers::push or it will definetly crash the entire kernel.
+    #[inline(always)]
+    pub unsafe fn pop() {
+        asm!(
+        "pop r15
+         pop r14
+         pop r13
+         pop r12
+         pop rbp
+         pop rbx
+         pop r11
+         pop r10
+         pop r9
+         pop r8
+         pop rsi
+         pop rdi
+         pop rdx
+         pop rcx
+         pop rax" : : : : "intel", "volatile");
     }
 }
