@@ -9,6 +9,7 @@
 #![feature(abi_x86_interrupt)]
 #![feature(asm)]
 #![feature(lang_items)]
+#![feature(naked_functions)]
 
 #[macro_use]
 mod vga;
@@ -22,7 +23,6 @@ pub mod panic;
 
 /// Entry point, called from arch start module
 pub fn kernel_main() -> ! {
-    println!("Hi!");
     vga::ferris_say("This is TetanOS");
     println!("Be careful, it's kinda rusty in here.");
 

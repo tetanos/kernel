@@ -1,111 +1,83 @@
+use super::InterruptContext;
+use super::Registers;
+use crate::interrupt_handler;
+
 /// Programmable Interrupt Timer
-pub fn programmable_interrupt_timer() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(programmable_interrupt_timer, context, {
+    context.dump();
+});
 
 /// Keyboard Interrupt Request
-pub fn keyboard() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(keyboard, context, {
+    context.dump();
+});
 
 /// Cascade
-pub fn cascade() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(cascade, context, {
+    context.dump();
+});
 
 /// Com2
-pub fn com2() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(com2, context, {
+    context.dump();
+});
 
 /// Com1
-pub fn com1() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(com1, context, {
+    context.dump();
+});
 
 /// Lpt2
-pub fn lpt2() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(lpt2, context, {
+    context.dump();
+});
 
 /// Floppy Interrupt Request
-pub fn floppy() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(floppy, context, {
+    context.dump();
+});
 
 /// Lpt1
-pub fn lpt1() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(lpt1, context, {
+    context.dump();
+});
 
 /// Real time cmos clock Interrupt Request
-pub fn cmos() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(cmos, context, {
+    context.dump();
+});
 
 /// Pci1
-pub fn pci1() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(pci1, context, {
+    context.dump();
+});
 
 /// Pci2
-pub fn pci2() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(pci2, context, {
+    context.dump();
+});
 
 /// Pci3
-pub fn pci3() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(pci3, context, {
+    context.dump();
+});
 
 /// PS2 Mouse Interrupt Request
-pub fn ps2_mouse() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(ps2_mouse, context, {
+    context.dump();
+});
 
 /// FPU
-pub fn fpu() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(fpu, context, {
+    context.dump();
+});
 
 /// Primary ATA Disk Interrupt Request
-pub fn ata1() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(ata1, context, {
+    context.dump();
+});
 
 /// Secondary ATA Disk Interrupt Request
-pub fn ata2() {
-    loop {
-        super::halt();
-    }
-}
+interrupt_handler!(ata2, context, {
+    context.dump();
+});

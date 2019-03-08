@@ -2,6 +2,7 @@ use core::mem::size_of;
 
 use super::hardware::cpu;
 use super::segmentation::*;
+use super::task_state::{self, TaskStateSegment, TSS};
 use super::DescriptorTablePointer;
 use super::RingLevel;
 
@@ -85,19 +86,20 @@ pub unsafe fn init() {
 
     super::lgdt(&GDT_REF);
 
-    // We can now access our TSS, which is a thread local
-    // GDT[GDT_TSS].set_offset(&TSS as *const _ as u32);
-    // GDT[GDT_TSS].set_limit(mem::size_of::<TaskState>() as u32);
+    GDT[Type::TaskState as usize].set_offset(&TSS as *const _ as u32);
+    GDT[Type::TaskState as usize].set_limit(size_of::<TaskStateSegment>() as u32);
 
-    // set tss stack
+    // idk wtf to put in there
+    TSS.rsp[0] = 0x5555555555 as u64;
 
-    //set_cs(Selector::new(Type::KernelCode, RingLevel::Zero));
+    load_cs(Selector::new(Type::KernelCode, RingLevel::Zero));
     load_ds(Selector::new(Type::KernelData, RingLevel::Zero));
     load_es(Selector::new(Type::KernelData, RingLevel::Zero));
     load_fs(Selector::new(Type::KernelThreadLocal, RingLevel::Zero));
     load_gs(Selector::new(Type::KernelData, RingLevel::Zero));
     load_ss(Selector::new(Type::KernelData, RingLevel::Zero));
 
-    // Load the task register
-    //task_state::load_tr(Selector::new(Type::TaskState, RingLevel::Zero));
+    println!("tr");
+    task_state::load_tr(Selector::new(Type::TaskState, RingLevel::Zero));
+    println!("tr-done");
 }

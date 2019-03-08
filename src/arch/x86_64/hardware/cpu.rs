@@ -16,7 +16,7 @@ pub enum Mode {
 /// Representation of the cpu registers at a moment in time.
 ///
 /// These values are not in sync with the actual registers.
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug, Copy, Clone)]
 #[repr(packed)]
 pub struct Registers {
     pub rax: usize,
@@ -47,22 +47,22 @@ impl Registers {
     #[inline(always)]
     pub unsafe fn push() {
         asm!(
-        "push rax
-         push rcx
-         push rdx
-         push rdi
-         push rsi
-         push r8
-         push r9
-         push r10
-         push r11
-         push rbx
-         push rbp
-         push r12
-         push r13
+        "push r15
          push r14
-         push r15"
-        : : : : "intel", "volatile");
+         push r13
+         push r12
+         push rbp
+         push rbx
+         push r11
+         push r10
+         push r9
+         push r8
+         push rsi
+         push rdi
+         push rdx
+         push rcx
+         push rax"
+         : : : : "intel", "volatile");
     }
 
     /// This method will pop an item into every register.
@@ -71,20 +71,21 @@ impl Registers {
     #[inline(always)]
     pub unsafe fn pop() {
         asm!(
-        "pop r15
-         pop r14
-         pop r13
-         pop r12
-         pop rbp
-         pop rbx
-         pop r11
-         pop r10
-         pop r9
-         pop r8
-         pop rsi
-         pop rdi
-         pop rdx
+        "pop rax
          pop rcx
-         pop rax" : : : : "intel", "volatile");
+         pop rdx
+         pop rdi
+         pop rsi
+         pop r8
+         pop r9
+         pop r10
+         pop r11
+         pop rbx
+         pop rbp
+         pop r12
+         pop r13
+         pop r14
+         pop r15"
+          : : : : "intel", "volatile");
     }
 }

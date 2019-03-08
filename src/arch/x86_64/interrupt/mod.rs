@@ -43,17 +43,31 @@ pub struct InterruptContext {
 }
 
 impl InterruptContext {
-    /// Takes a snapshot of the current interruption context and pass it down to the callback
-    /// argument.
-    pub unsafe fn snapshot(callback: fn(&Self)) {
-        Registers::push();
+    fn dump(&self) {
+        //       println!("{:#x?}", &self);
+    }
+}
 
-        let rsp: usize;
-        asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
+#[macro_export]
+macro_rules! interrupt_handler {
+    ($name: ident, $context: ident, $callback: block) => {
+        #[naked]
+        pub unsafe extern fn $name() {
+            #[inline(never)]
+            unsafe fn handler($context: &InterruptContext) {
+                $callback
+            }
 
-        callback(&*(rsp as *const Self));
+            Registers::push();
 
-        Registers::pop();
+            let rsp: usize;
+            asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
+
+            handler(&*(rsp as *const InterruptContext));
+
+            Registers::pop();
+            super::ireturn();
+        }
     }
 }
 

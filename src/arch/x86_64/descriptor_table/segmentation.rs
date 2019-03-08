@@ -25,23 +25,34 @@ pub enum Type {
 #[repr(packed)]
 pub struct Descriptor {
     limit_l: u16,
-    address_l: u16,
-    address_m: u8,
+    offset_l: u16,
+    offset_m: u8,
     access: u8,
     flags_limit_h: u8,
-    address_h: u8,
+    offset_h: u8,
 }
 
 impl Descriptor {
-    pub const fn new(address: u32, limit: u32, access: Access, flags: Flag) -> Self {
+    pub const fn new(offset: u32, limit: u32, access: Access, flags: Flag) -> Self {
         Descriptor {
             limit_l: limit as u16,
-            address_l: address as u16,
-            address_m: (address >> 16) as u8,
+            offset_l: offset as u16,
+            offset_m: (offset >> 16) as u8,
             access: access.0,
             flags_limit_h: flags.value() & 0xf0 | (limit >> 16) as u8 & 0x0f,
-            address_h: (address >> 24) as u8,
+            offset_h: (offset >> 24) as u8,
         }
+    }
+
+    pub fn set_offset(&mut self, value: u32) {
+        self.offset_l = value as u16;
+        self.offset_m = (value >> 16) as u8;
+        self.offset_h = (value >> 24) as u8;
+    }
+
+    pub fn set_limit(&mut self, value: u32) {
+        self.limit_l = value as u16;
+        self.flags_limit_h = self.flags_limit_h & 0xf0 | ((value >> 16) as u8) & 0x0f;
     }
 }
 
@@ -103,7 +114,17 @@ impl Selector {
 
 /// Load a segment into the code segment register.
 pub unsafe fn load_cs(selector: Selector) {
-    // TODO
+    //    asm!("movw $0, %cs " :: "r"(selector.0) : "memory" : "volatile");
+    #[inline(always)]
+    unsafe fn inner(sel: Selector) {
+        asm!("pushq $0; \
+              leaq  1f(%rip), %rax; \
+              pushq %rax; \
+              lretq; \
+              1:" :: "ri" (u64::from(sel.0)) : "rax" "memory");
+    }
+
+    inner(selector)
 }
 
 /// Load a segment into the stack segment register.

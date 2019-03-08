@@ -1,7 +1,9 @@
-/// System Callable Interrupt Handler
-pub fn interrupt() {
-    println!("this is a syscall bro");
-    loop {
-        super::halt();
-    }
-}
+use super::InterruptContext;
+use super::Registers;
+use crate::interrupt_handler;
+
+/// System Call Interrupt Handler
+interrupt_handler!(interrupt, context, {
+    println!("System call interrupt");
+    context.dump();
+});

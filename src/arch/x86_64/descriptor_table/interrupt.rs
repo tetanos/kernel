@@ -130,7 +130,7 @@ impl Descriptor {
         self.offset_h = (address >> 32) as u32;
     }
 
-    fn set_handler(&mut self, handler: unsafe fn()) {
+    fn set_handler(&mut self, handler: unsafe extern "C" fn()) {
         self.attribute = DescriptorAttribute::new(
             true,
             RingLevel::Zero,

@@ -1,5 +1,7 @@
+use super::InterruptContext;
 use super::InterruptRegisters;
 use super::Registers;
+use crate::interrupt_handler;
 
 /// Memory representation of the context during an exception interrupt.
 #[derive(Debug, Copy, Clone)]
@@ -12,13 +14,15 @@ struct ExceptionContext {
 
 impl ExceptionContext {
     fn dump(&self) {
-        println!("{:#x?}", &self);
+        //        println!("{:#x?}", &self);
     }
 }
 
 macro_rules! exception_handler {
     ($name: ident, $context: ident, $callback: block) => {
-        pub unsafe fn $name() {
+        #[naked]
+        pub unsafe extern fn $name() {
+            #[inline(never)]
             unsafe fn handler($context: &ExceptionContext) {
                 $callback
             }
@@ -31,54 +35,55 @@ macro_rules! exception_handler {
             handler(&*(rsp as *const ExceptionContext));
 
             Registers::pop();
+            asm!("add rsp, 8" : : : : "intel", "volatile");
             super::ireturn();
         }
     }
 }
 
 /// Division by Zero Exception handler
-exception_handler!(divide_by_zero, context, {
+interrupt_handler!(divide_by_zero, context, {
     context.dump();
 });
 
 /// Debug Exception handler
-exception_handler!(debug, context, {
+interrupt_handler!(debug, context, {
     println!("Debug trap");
     context.dump();
 });
 
 /// Non Maskable Interrupt Exception handler (NMI)
-exception_handler!(non_maskable, context, {
+interrupt_handler!(non_maskable, context, {
     println!("Non-maskable interrupt");
     context.dump();
 });
 
 /// Breakpoint Exception handler
-exception_handler!(breakpoint, context, {
+interrupt_handler!(breakpoint, context, {
     println!("Breakpoint trap");
     context.dump();
 });
 
 /// Overflow Exception handler
-exception_handler!(overflow, context, {
+interrupt_handler!(overflow, context, {
     println!("Overflow trap");
     context.dump();
 });
 
 /// Bound Check Exception handler
-exception_handler!(bound_check, context, {
+interrupt_handler!(bound_check, context, {
     println!("Bound check fault");
     context.dump();
 });
 
 /// Invalid Opcode Exception handler
-exception_handler!(invalid_opcode, context, {
+interrupt_handler!(invalid_opcode, context, {
     println!("Invalid Opcode fault");
     context.dump();
 });
 
 /// Device Not Available Exception handler
-exception_handler!(device_not_available, context, {
+interrupt_handler!(device_not_available, context, {
     println!("Device not available fault");
     context.dump();
 });
@@ -111,16 +116,20 @@ exception_handler!(stack_segment, context, {
 exception_handler!(protection, context, {
     println!("General protection fault");
     context.dump();
+    loop {}
 });
 
 /// Page Fault Exception handler
 exception_handler!(page, context, {
-    println!("Page fault");
+    let cr2: usize;
+    asm!("mov rax, cr2" : "={rax}"(cr2) : : : "intel", "volatile");
+    println!("Page fault at {:x}", cr2);
     context.dump();
+    loop {}
 });
 
 /// Floating Point Exception handler
-exception_handler!(floating_point, context, {
+interrupt_handler!(floating_point, context, {
     println!("Floating point exception");
     context.dump();
 });
@@ -132,19 +141,19 @@ exception_handler!(alignment_check, context, {
 });
 
 /// Machine Check Exception handler
-exception_handler!(machine_check, context, {
+interrupt_handler!(machine_check, context, {
     println!("Machine check fault");
     context.dump();
 });
 
 /// SIMD Exception handler
-exception_handler!(simd, context, {
+interrupt_handler!(simd, context, {
     println!("SIMD floating point exception");
     context.dump();
 });
 
 /// Virtualization Exception handler
-exception_handler!(virtualization, context, {
+interrupt_handler!(virtualization, context, {
     println!("Virtualization exception");
     context.dump();
 });

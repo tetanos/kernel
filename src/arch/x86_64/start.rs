@@ -5,12 +5,11 @@ use crate::kernel_main;
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     descriptor_table::interrupt::init();
-    //    descriptor_table::global::init();
+    descriptor_table::global::init();
+    //descriptor_table::global::init();
+    //descriptor_table::interrupt::init();
 
-    println!("test");
     super::interrupt::breakpoint();
-    println!("t123est");
-
-    super::interrupt::syscall();
-    kernel_main()
+    println!("did it work ^");
+    kernel_main();
 }
