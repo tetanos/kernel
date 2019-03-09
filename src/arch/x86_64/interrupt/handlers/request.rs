@@ -1,5 +1,5 @@
-use super::InterruptContext;
-use super::Registers;
+use super::interrupt;
+use crate::arch::x86_64::hardware::cpu;
 use crate::interrupt_handler;
 
 /// Programmable Interrupt Timer

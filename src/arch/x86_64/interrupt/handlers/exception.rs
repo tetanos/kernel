@@ -1,15 +1,14 @@
-use super::InterruptContext;
-use super::InterruptRegisters;
-use super::Registers;
+use super::interrupt;
+use crate::arch::x86_64::hardware::cpu;
 use crate::interrupt_handler;
 
 /// Memory representation of the context during an exception interrupt.
 #[derive(Debug, Copy, Clone)]
 #[repr(packed)]
 struct ExceptionContext {
-    registers: Registers,
+    registers: cpu::Registers,
     code: usize,
-    interrupt_registers: InterruptRegisters,
+    interrupt_registers: interrupt::InterruptRegisters,
 }
 
 impl ExceptionContext {
@@ -27,16 +26,16 @@ macro_rules! exception_handler {
                 $callback
             }
 
-            Registers::push();
+           cpu:: Registers::push();
 
             let rsp: usize;
             asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
 
             handler(&*(rsp as *const ExceptionContext));
 
-            Registers::pop();
+            cpu::Registers::pop();
             asm!("add rsp, 8" : : : : "intel", "volatile");
-            super::ireturn();
+            interrupt::ireturn();
         }
     }
 }

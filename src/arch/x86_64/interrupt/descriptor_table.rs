@@ -1,21 +1,21 @@
 use core::mem::size_of;
 
-use super::DescriptorTablePointer;
-use super::RingLevel;
-use crate::arch::x86_64::interrupt::{exception, request, syscall};
+use super::super::segmentation;
+use super::handlers::*;
 
 /// A reference to the idt object in memory.
-static mut IDT_REF: DescriptorTablePointer<Descriptor> = DescriptorTablePointer {
-    limit: 0,
-    address: 0 as *const Descriptor,
-};
+static mut IDT_REF: segmentation::DescriptorTablePointer<Entry> =
+    segmentation::DescriptorTablePointer {
+        limit: 0,
+        address: 0 as *const Entry,
+    };
 
 /// table containing pointers to handler function of exceptions, interrupt and syscalls
-static mut IDT: [Descriptor; 256] = [Descriptor::new(); 256];
+static mut IDT: [Entry; 256] = [Entry::new(); 256];
 
 pub unsafe fn init() {
-    IDT_REF.limit = (IDT.len() * size_of::<Descriptor>() - 1) as u16;
-    IDT_REF.address = IDT.as_ptr() as *const Descriptor;
+    IDT_REF.limit = (IDT.len() * size_of::<Entry>() - 1) as u16;
+    IDT_REF.address = IDT.as_ptr() as *const Entry;
 
     // Exceptions interrupt
     IDT[0].set_handler(exception::divide_by_zero);
@@ -64,43 +64,13 @@ pub unsafe fn init() {
     // System call
     IDT[0x80].set_handler(syscall::interrupt);
 
-    super::lidt(&IDT_REF);
-}
-
-/// Attribute type of the descriptor.
-#[allow(dead_code)]
-#[repr(u8)]
-enum DescriptorAttributeType {
-    /// Interrupt Gate
-    Interrupt = 0xe,
-    /// Trap Gate
-    Trap = 0xf,
-}
-
-/// Represent the type attribute bits of the interrupt descriptor.
-#[derive(Copy, Clone, Debug)]
-struct DescriptorAttribute(u8);
-
-impl DescriptorAttribute {
-    const fn new(
-        present: bool,
-        ring: RingLevel,
-        storage_segment: bool,
-        attribute_type: DescriptorAttributeType,
-    ) -> Self {
-        DescriptorAttribute(
-            (present as u8) << 7
-                | (ring as u8) << 5
-                | (storage_segment as u8) << 5
-                | attribute_type as u8,
-        )
-    }
+    segmentation::lidt(&IDT_REF);
 }
 
 /// An entry in the interrupt descriptor table.
 #[derive(Copy, Clone, Debug)]
 #[repr(packed)]
-struct Descriptor {
+struct Entry {
     offset_l: u16,
     selector: u16,
     zero1: u8,
@@ -110,9 +80,9 @@ struct Descriptor {
     zero2: u32,
 }
 
-impl Descriptor {
+impl Entry {
     const fn new() -> Self {
-        Descriptor {
+        Entry {
             offset_l: 0,
             selector: 0,
             zero1: 0,
@@ -131,13 +101,43 @@ impl Descriptor {
     }
 
     fn set_handler(&mut self, handler: unsafe extern "C" fn()) {
-        self.attribute = DescriptorAttribute::new(
+        self.attribute = Attribute::new(
             true,
-            RingLevel::Zero,
+            segmentation::RingLevel::Zero,
             false,
-            DescriptorAttributeType::Interrupt,
+            AttributeType::Interrupt,
         )
         .0;
         self.set_offset(8, handler as usize);
+    }
+}
+
+/// Attribute type of the descriptor.
+#[allow(dead_code)]
+#[repr(u8)]
+enum AttributeType {
+    /// Interrupt Gate
+    Interrupt = 0xe,
+    /// Trap Gate
+    Trap = 0xf,
+}
+
+/// Represent the type attribute bits of the interrupt descriptor.
+#[derive(Copy, Clone, Debug)]
+struct Attribute(u8);
+
+impl Attribute {
+    const fn new(
+        present: bool,
+        ring: segmentation::RingLevel,
+        storage_segment: bool,
+        attribute_type: AttributeType,
+    ) -> Self {
+        Attribute(
+            (present as u8) << 7
+                | (ring as u8) << 5
+                | (storage_segment as u8) << 5
+                | attribute_type as u8,
+        )
     }
 }

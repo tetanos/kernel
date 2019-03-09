@@ -1,4 +1,4 @@
-use super::segmentation::Selector;
+use super::SegmentSelector;
 
 pub static mut TSS: TaskStateSegment = TaskStateSegment::new();
 
@@ -28,6 +28,6 @@ impl TaskStateSegment {
     }
 }
 
-pub unsafe fn load_tr(selector: Selector) {
+pub unsafe fn load_task_register(selector: SegmentSelector) {
     asm!("ltr $0" :: "r" (selector.0));
 }

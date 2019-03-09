@@ -1,13 +1,10 @@
-pub use super::hardware::cpu::Registers;
+pub use super::hardware::cpu;
 
-/// Interrupt exceptions
-pub mod exception;
+/// Interrupt Handlers
+pub mod handlers;
 
-/// Interrupt requests (IRQ)
-pub mod request;
-
-/// Kernel syscalls (int 0x80)
-pub mod syscall;
+/// Interrupt descriptor table
+pub mod descriptor_table;
 
 /// Registers pushed on the stack during an interrupt.
 ///
@@ -38,7 +35,7 @@ pub struct InterruptRegisters {
 #[derive(Debug, Copy, Clone)]
 #[repr(packed)]
 pub struct InterruptContext {
-    regsisters: Registers,
+    regsisters: cpu::Registers,
     interrupt_registers: InterruptRegisters,
 }
 
@@ -54,19 +51,19 @@ macro_rules! interrupt_handler {
         #[naked]
         pub unsafe extern fn $name() {
             #[inline(never)]
-            unsafe fn handler($context: &InterruptContext) {
+            unsafe fn handler($context: &interrupt::InterruptContext) {
                 $callback
             }
 
-            Registers::push();
+            cpu::Registers::push();
 
             let rsp: usize;
             asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
 
-            handler(&*(rsp as *const InterruptContext));
+            handler(&*(rsp as *const interrupt::InterruptContext));
 
-            Registers::pop();
-            super::ireturn();
+            cpu::Registers::pop();
+            interrupt::ireturn();
         }
     }
 }
@@ -96,6 +93,7 @@ pub fn breakpoint() {
 }
 
 /// Return from the current interrupt.
+#[inline(always)]
 pub fn ireturn() {
     unsafe { asm!("iretq" : : : : "intel", "volatile") }
 }
