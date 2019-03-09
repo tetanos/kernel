@@ -87,7 +87,7 @@ pub unsafe fn init() {
     segmentation::load_stack_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
 
     println!("tr");
-    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Zero));
+    //    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Zero));
     println!("tr-done");
 }
 
