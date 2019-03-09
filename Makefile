@@ -1,46 +1,40 @@
-ARCH?=x86_64
-TARGET?=$(ARCH)_unknown-none
+LINKER := ld
+MKGRUB := grub-mkrescue
 
-PROJECT_NAME?=tetanos
-DEST_DIR?=target/$(TARGET)/disks
-BUILD_DIR?=build
-FILENAME?=$(PROJECT_NAME)-$(ARCH)
-FILEPATH?=$(TARGET)/$(FILENAME)
+iso := obj/tetanos.iso
+kernel := obj/kernel.bin
+assembly_source_files := $(wildcard src/bootloader/*.asm)
+assembly_object_files := $(patsubst src/bootloader/%.asm, \
+    obj/bootloader/%.o, $(assembly_source_files))
 
-NASM_INCLUDES?=-ibootloader/$(ARCH)/
-KERNEL_NASM?= -D KERNEL=$(BUILD_DIR)/kernel.bin
+all: $(kernel) iso
 
-pre-build: format
-	mkdir -p $(DEST_DIR)
-	mkdir -p $(BUILD_DIR)
-	#cp src/lib.rs src/main.rs
+kernel:
+	RUST_TARGET_PATH=$(shell pwd)/targets xargo build --target x86_64_unknown-none
 
-post-build:
-	rm -rf build #src/main.rs
+iso: $(iso)
 
-bootloader: pre-build build/bootloader-$(ARCH).bin
-	mv build/bootloader-$(ARCH).bin $(DEST_DIR)/bootloader-$(ARCH).bin
-	$(MAKE) post-build
+obj/bootloader/%.o: src/bootloader/%.asm
+	@mkdir -p obj/bootloader
+	nasm -felf64 $< -o $@
 
-kernel: pre-build build/kernel-$(ARCH).o
+run: $(iso)
+	qemu-system-x86_64 -cdrom $(iso)
 
-build: pre-build build/$(FILENAME).a
-	mv build/$(FILENAME).bin $(FILEPATH).bin
-	make post-build
+$(kernel): kernel $(assembly_object_files)
+	$(LINKER) -n -T src/bootloader/linker.ld -o $(kernel) $(assembly_object_files)
 
-iso:
-	echo todo
-
-run:
-	qemu-system-$(ARCH) -drive format=raw,file=$(FILEPATH).bin
-
-run-bootloader: bootloader
-	qemu-system-$(ARCH) -drive format=raw,file=$(DEST_DIR)/bootloader-$(ARCH).bin
+$(iso): $(kernel)
+	mkdir -p obj/isofiles/boot/grub
+	cp $(kernel) obj/isofiles/boot/kernel.bin
+	cp src/bootloader/grub.cfg  obj/isofiles/boot/grub
+	$(MKGRUB) -o $(iso) obj/isofiles
 
 clean:
 	cargo clean
 	rm -rf Cargo.lock
-	$(MAKE) post-build
+	rm -f **/*.o
+	rm -rf obj/isofiles
 
 doc:
 	cargo doc --no-deps --open
@@ -56,18 +50,3 @@ test: lint
 
 bench:
 	cargo bench --benches
-
-vbox: build/$(FILENAME).bin
-	dd if=$< of=$(BUILD_DIR)/$(FILENAME).dd
-	VboxManage convertdd $(BUILD_DIR)/$(FILENAME).dd $(BUILD_DIR)/$(FILENAME).vdi --format VDI --variant Fixed
-	$(MAKE) post-build
-
-build/bootloader-$(ARCH).bin:
-	nasm -f bin -D ARCH_$(ARCH) $(NASM_INCLUDES) -o $@ bootloader/$(ARCH)/disk.asm
-
-build/kernel-$(ARCH).a:
-	cargo xbuild --target=targets/x86_64_unknown-none.json
-
-build/$(FILENAME).bin: build/bootloader-$(ARCH).bin
-	nasm -f bin -D ARCH_$(ARCH) $(KERNEL_NASM) $(NASM_INCLUDES) -o $@ bootloader/$(ARCH)/disk.asm
-

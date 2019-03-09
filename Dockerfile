@@ -1,6 +1,6 @@
-FROM ubuntu:17.10 as builder
+FROM rustup
 
 RUN apt update
-RUN apt install -y binutils nasm grub-pc-bin xorriso make
+RUN apt install -y binutils nasm grub-pc xorriso make 
 
 
