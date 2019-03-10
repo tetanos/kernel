@@ -3,32 +3,34 @@ MKGRUB := grub-mkrescue
 
 iso := obj/tetanos.iso
 kernel := obj/kernel.bin
+libkernel := obj/libkernel.a
+linker_script := src/bootloader/linker.ld
 assembly_source_files := $(wildcard src/bootloader/*.asm)
 assembly_object_files := $(patsubst src/bootloader/%.asm, \
     obj/bootloader/%.o, $(assembly_source_files))
 
-all: $(kernel) iso
-
-kernel:
-	RUST_TARGET_PATH=$(shell pwd)/targets xargo build --target x86_64_unknown-none
-
+all: iso
 iso: $(iso)
-
-obj/bootloader/%.o: src/bootloader/%.asm
-	@mkdir -p obj/bootloader
-	nasm -felf64 $< -o $@
-
+kernel: $(libkernel)
 run: $(iso)
 	qemu-system-x86_64 -cdrom $(iso)
-
-$(kernel): kernel $(assembly_object_files)
-	$(LINKER) -n -T src/bootloader/linker.ld -o $(kernel) $(assembly_object_files)
 
 $(iso): $(kernel)
 	mkdir -p obj/isofiles/boot/grub
 	cp $(kernel) obj/isofiles/boot/kernel.bin
 	cp src/bootloader/grub.cfg  obj/isofiles/boot/grub
 	$(MKGRUB) -o $(iso) obj/isofiles
+
+$(kernel): $(libkernel) $(assembly_object_files) $(linker_script)
+	$(LINKER) -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(libkernel)
+
+$(libkernel):
+	RUST_TARGET_PATH=$(shell pwd)/targets xargo build --target x86_64_unknown-none
+	cp target/x86_64_unknown-none/debug/libkernel.a $(libkernel)
+
+obj/bootloader/%.o: src/bootloader/%.asm
+	@mkdir -p obj/bootloader
+	nasm -felf64 $< -o $@
 
 clean:
 	cargo clean
