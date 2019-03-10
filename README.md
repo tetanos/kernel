@@ -47,7 +47,10 @@ and that the make `LINKER` variable is set to `x86_64-elf-ld`
 ## Simpler setup dev using docker
 
 	docker build . -t tetanos-builder
-	docker -v $(pwd):/build -it bash tetanos-builder
+	docker run -v $(pwd):/build -it tetanos-builder bash
+	# from the container
+	cd /build
+	make
 
 ## License
 
