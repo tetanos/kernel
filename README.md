@@ -43,6 +43,11 @@ and that the make `LINKER` variable is set to `x86_64-elf-ld`
 	git clone https://github.com/afrigon/TetanOS
 	cd TetanOS
 	cargo build
+	
+## Simpler setup dev using docker
+
+	docker build . -t tetanos-builder
+	docker -v $(pwd):/build -it bash tetanos-builder
 
 ## License
 
