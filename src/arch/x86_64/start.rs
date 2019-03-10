@@ -8,6 +8,5 @@ pub unsafe extern "C" fn _start() -> ! {
     segmentation::global_descriptor_table::init();
     interrupt::descriptor_table::init();
 
-    interrupt::breakpoint();
     kernel_main();
 }

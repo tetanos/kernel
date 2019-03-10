@@ -26,7 +26,7 @@ macro_rules! exception_handler {
                 $callback
             }
 
-           cpu:: Registers::push();
+            cpu:: Registers::push();
 
             let rsp: usize;
             asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
@@ -42,6 +42,7 @@ macro_rules! exception_handler {
 
 /// Division by Zero Exception handler
 interrupt_handler!(divide_by_zero, context, {
+    println!("Divide by zero fault");
     context.dump();
 });
 
@@ -90,6 +91,7 @@ interrupt_handler!(device_not_available, context, {
 /// Double Fault Exception handler
 exception_handler!(double_fault, context, {
     println!("Double fault");
+    loop {}
     context.dump();
 });
 

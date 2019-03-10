@@ -15,57 +15,83 @@ static mut GDT_REF: DescriptorTablePointer<Entry> = DescriptorTablePointer {
 };
 
 /// Table containing information about memory segments.
-static mut GDT: [Entry; 7] = [
-    // Zero
-    Entry::new(
-        0,
-        0,
-        Access::new(false, RingLevel::Zero, false, false, false, false, false),
-        Flags(cpu::Mode::Real, Granularity::Byte),
-    ),
+///
+/// Flat setup **REQUIRES TWEAKING**
+static mut GDT: [Entry; 4] = [
+    Entry::zero(),
     // Kernel Code
     Entry::new(
         0,
-        0,
+        0xffffffff,
         Access::new(true, RingLevel::Zero, true, true, false, true, false),
         Flags(cpu::Mode::Long, Granularity::Byte),
     ),
     // Kernel Data
     Entry::new(
         0,
-        0,
+        0xffffffff,
         Access::new(true, RingLevel::Zero, true, false, false, true, false),
         Flags(cpu::Mode::Long, Granularity::Byte),
     ),
-    // User Code
+    // TSS
     Entry::new(
         0,
         0,
-        Access::new(true, RingLevel::Three, true, true, false, true, false),
+        Access::new(true, RingLevel::Zero, false, true, false, false, true),
         Flags(cpu::Mode::Long, Granularity::Byte),
-    ),
-    // User Data
-    Entry::new(
-        0,
-        0,
-        Access::new(true, RingLevel::Three, true, false, false, true, false),
-        Flags(cpu::Mode::Long, Granularity::Byte),
-    ),
-    // Task State Segment
-    Entry::new(
-        0,
-        0,
-        Access::new(true, RingLevel::Three, false, false, false, false, false),
-        Flags(cpu::Mode::Long, Granularity::Byte),
-    ),
-    // Task State Segment High
-    Entry::new(
-        0,
-        0,
-        Access::new(false, RingLevel::Zero, false, false, false, false, false),
-        Flags(cpu::Mode::Real, Granularity::Byte),
     ),
 ];
+//static mut GDT: [Entry; 7] = [
+//    // Zero
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(false, RingLevel::Zero, false, false, false, false, false),
+//        Flags(cpu::Mode::Real, Granularity::Byte),
+//    ),
+//    // Kernel Code
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(true, RingLevel::Zero, true, true, false, true, false),
+//        Flags(cpu::Mode::Long, Granularity::Byte),
+//    ),
+//    // Kernel Data
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(true, RingLevel::Zero, true, false, false, true, false),
+//        Flags(cpu::Mode::Long, Granularity::Byte),
+//    ),
+//    // User Code
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(true, RingLevel::Three, true, true, false, true, false),
+//        Flags(cpu::Mode::Long, Granularity::Byte),
+//    ),
+//    // User Data
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(true, RingLevel::Three, true, false, false, true, false),
+//        Flags(cpu::Mode::Long, Granularity::Byte),
+//    ),
+//    // Task State Segment
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(true, RingLevel::Three, false, false, false, false, false),
+//        Flags(cpu::Mode::Long, Granularity::Byte),
+//    ),
+//    // Task State Segment High
+//    Entry::new(
+//        0,
+//        0,
+//        Access::new(false, RingLevel::Zero, false, false, false, false, false),
+//        Flags(cpu::Mode::Real, Granularity::Byte),
+//    ),
+//];
 
 /// Loads the gdt into memory
 pub unsafe fn init() {
@@ -86,9 +112,7 @@ pub unsafe fn init() {
     segmentation::load_g_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
     segmentation::load_stack_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
 
-    println!("tr");
-    //    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Zero));
-    println!("tr-done");
+    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Zero));
 }
 
 /// Entry in the GDT.
@@ -114,6 +138,17 @@ impl Entry {
             access: access.0,
             flags_limit_h: flags.value() & 0xf0 | (limit >> 16) as u8 & 0x0f,
             offset_h: (offset >> 24) as u8,
+        }
+    }
+
+    const fn zero() -> Entry {
+        Entry {
+            limit_l: 0,
+            offset_l: 0,
+            offset_m: 0,
+            access: 0,
+            flags_limit_h: 0,
+            offset_h: 0,
         }
     }
 

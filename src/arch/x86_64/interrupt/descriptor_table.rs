@@ -108,6 +108,8 @@ impl Entry {
             AttributeType::Interrupt,
         )
         .0;
+
+        // this points to the kernel code segment since it's 8 bytes from the start of GDT
         self.set_offset(8, handler as usize);
     }
 }

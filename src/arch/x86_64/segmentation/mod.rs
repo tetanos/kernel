@@ -25,12 +25,18 @@ pub enum GlobalDescriptorType {
     Null = 0,
     KernelCode = 1,
     KernelData = 2,
-    UserCode = 3,
-    UserData = 4,
-    TaskState = 5,
-    /// The task state segment must be 16 bytes long
-    TaskStateHigh = 6,
+    TaskState = 3,
 }
+//pub enum GlobalDescriptorType {
+//    Null = 0,
+//    KernelCode = 1,
+//    KernelData = 2,
+//    UserCode = 3,
+//    UserData = 4,
+//    TaskState = 5,
+//    /// The task state segment must be 16 bytes long
+//    TaskStateHigh = 6,
+//}
 
 /// Index of a segment in the GDT.
 pub struct SegmentSelector(pub u16);
