@@ -8,8 +8,8 @@
     "target-c-int-width": "32",
     "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
     "env": "",
-    "dynamic--linking": false,
-    "executables": true,
+    "dynamic-linking": false,
+    "executables": false,
     "linker-flavor": "ld.lld",
     "linker": "rust-lld",
     "panic-strategy": "abort",
@@ -20,4 +20,3 @@
     "position-independent-executables": false,
     "allow-asm": true
 }
-
