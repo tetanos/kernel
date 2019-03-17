@@ -11,7 +11,7 @@ long_mode_start:
 	mov fs, ax
 	mov gs, ax
 
-	extern kernel_main
-	call kernel_main
+	extern kernel_start
+	call kernel_start
 
 	hlt

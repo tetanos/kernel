@@ -6,54 +6,32 @@
 #![allow(unused_attributes)]
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(not(test), no_main)]
-#![cfg_attr(test, allow(unused_imports))]
 #![feature(abi_x86_interrupt)]
+#![feature(asm)]
 #![feature(lang_items)]
+#![feature(naked_functions)]
 
-use core::panic::PanicInfo;
-
-mod gdt;
-mod interrupts;
-mod serial;
+#[macro_use]
 mod vga;
 
-#[cfg(not(test))]
-#[no_mangle]
-pub extern "C" fn kernel_main() -> ! {
-    println!("Hi!");
+/// Architecture dependent modules
+pub mod arch;
+pub use arch::*;
+
+/// Panic Handlers
+pub mod panic;
+
+/// Entry point, called from arch start module
+pub fn kernel_main() -> ! {
     vga::ferris_say("This is TetanOS");
     println!("Be careful, it's kinda rusty in here.");
-    init();
-}
 
-pub fn init() -> ! {
-    /*
-    gdt::init();
-    interrupts::init();
+    //    use interrupts::PICS;
+    //    unsafe { PICS.lock().initialize() };
+    //    interrupt::enable();
+    //    vga::term::TERM.lock().init();
 
-    use interrupts::PICS;
-    unsafe { PICS.lock().initialize() };
-    x86_64::instructions::interrupts::enable();
-
-    vga::term::TERM.lock().init();
-     */
-
-    hlt_loop();
-}
-
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
-    hlt_loop()
-}
-
-pub fn hlt_loop() -> ! {
     loop {
-        x86_64::instructions::hlt();
+        interrupt::halt();
     }
 }
-
-#[lang = "eh_personality"]
-#[no_mangle]
-pub extern "C" fn eh_personality() {}
