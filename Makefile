@@ -44,12 +44,23 @@ obj/bootloader/%.o: src/bootloader/%.asm
 	nasm -felf64 $< -o $@
 
 docker:		## Runs "make iso" within our build docker image
-	docker build . -t tetanos-builder
-	docker run --rm --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder make iso
+	$(eval BUILDER := $(shell docker ps -a | grep 'tetanos-builder' | awk '{ print $$1; }' | head -n 1))
+	docker build docker_ctx -t tetanos-builder
+	if [ $(BUILDER) ]; then\
+		docker start -ai $(BUILDER);\
+	else\
+		docker run --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder make iso;\
+	fi
 
 clean:		## Cleans the build folders
+	$(eval BUILDER := $(shell docker ps -a | grep 'tetanos-builder' | awk '{ print $$1; }' | head -n 1))
+	if [ $(BUILDER) ]; then\
+		docker rm $(BUILDER);\
+	fi
+	docker rmi tetanos-builder
 	cargo clean
 	rm -rf obj/*
+	docker r
 
 doc:		## Builds and open the libkernel documentation
 	cargo doc --no-deps --open
