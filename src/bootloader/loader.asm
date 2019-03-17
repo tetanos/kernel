@@ -1,14 +1,11 @@
 global start
-extern long_mode_start
 
 bits 32
 
 section .text
-start:
-	;; print tldr to screen
-	mov dword [0xb8000], 0x2f6c2f74
-	mov dword [0xb8004], 0x2f722f64
 
+; grub entry point
+start:
 	mov esp, stack_top
 	call check_multiboot
 	call check_cpuid
@@ -136,6 +133,8 @@ enable_paging:
 	or eax, 1 << 31
 	mov cr0, eax
 	ret
+
+%include "long.asm"
 
 section .bss
 	align 4096

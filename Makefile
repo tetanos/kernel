@@ -27,11 +27,11 @@ run: $(iso)
 $(iso): $(kernel)
 	mkdir -p obj/isofiles/boot/grub
 	cp $(kernel) obj/isofiles/boot/kernel.bin
-	cp src/bootloader/grub.cfg  obj/isofiles/boot/grub
+	cp src/bootloader/grub/grub.cfg  obj/isofiles/boot/grub
 	$(MKGRUB) -o $(iso) obj/isofiles
 
 $(kernel): $(libkernel) $(linker_script) obj/bootloader/grub/headers.o obj/bootloader/loader.o
-	$(LINKER) -n -T $(linker_script) -o $(kernel) $(libkernel) obj/bootloader/grub/headers.o obj/bootloader/loader.o
+	$(LINKER) -n -T $(linker_script) -o $(kernel) obj/bootloader/grub/headers.o obj/bootloader/loader.o $(libkernel)
 
 $(libkernel): $(source_files)
 	@mkdir -p $(basename $(libkernel))
