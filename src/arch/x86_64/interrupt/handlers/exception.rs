@@ -13,7 +13,7 @@ struct ExceptionContext {
 
 impl ExceptionContext {
     fn dump(&self) {
-        //        println!("{:#x?}", &self);
+        println!("{:#x?}", &self);
     }
 }
 
@@ -90,8 +90,7 @@ interrupt_handler!(device_not_available, context, {
 
 /// Double Fault Exception handler
 exception_handler!(double_fault, context, {
-    //println!("Double fault");
-    loop {}
+    println!("Double fault");
     context.dump();
 });
 
@@ -117,7 +116,6 @@ exception_handler!(stack_segment, context, {
 exception_handler!(protection, context, {
     println!("General protection fault");
     context.dump();
-    loop {}
 });
 
 /// Page Fault Exception handler
@@ -126,7 +124,6 @@ exception_handler!(page, context, {
     asm!("mov rax, cr2" : "={rax}"(cr2) : : : "intel", "volatile");
     println!("Page fault at {:x}", cr2);
     context.dump();
-    loop {}
 });
 
 /// Floating Point Exception handler
