@@ -36,5 +36,5 @@ impl TaskStateSegment {
 
 /// load the selector into the task register.
 pub unsafe fn load_task_register(selector: SegmentSelector) {
-    asm!("ltr $0" : : "r" (selector.0) : : "intel", "volatille");
+    asm!("ltr $0" : : "r" (selector.0) : : "intel", "volatile");
 }

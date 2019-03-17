@@ -40,85 +40,85 @@ macro_rules! exception_handler {
     }
 }
 
-/// Division by Zero Exception handler
+// Division by Zero Exception handler
 interrupt_handler!(divide_by_zero, context, {
     println!("Divide by zero fault");
     context.dump();
 });
 
-/// Debug Exception handler
+// Debug Exception handler
 interrupt_handler!(debug, context, {
     println!("Debug trap");
     context.dump();
 });
 
-/// Non Maskable Interrupt Exception handler (NMI)
+// Non Maskable Interrupt Exception handler (NMI)
 interrupt_handler!(non_maskable, context, {
     println!("Non-maskable interrupt");
     context.dump();
 });
 
-/// Breakpoint Exception handler
+// Breakpoint Exception handler
 interrupt_handler!(breakpoint, context, {
     println!("Breakpoint trap");
     context.dump();
 });
 
-/// Overflow Exception handler
+// Overflow Exception handler
 interrupt_handler!(overflow, context, {
     println!("Overflow trap");
     context.dump();
 });
 
-/// Bound Check Exception handler
+// Bound Check Exception handler
 interrupt_handler!(bound_check, context, {
     println!("Bound check fault");
     context.dump();
 });
 
-/// Invalid Opcode Exception handler
+// Invalid Opcode Exception handler
 interrupt_handler!(invalid_opcode, context, {
     println!("Invalid Opcode fault");
     context.dump();
 });
 
-/// Device Not Available Exception handler
+// Device Not Available Exception handler
 interrupt_handler!(device_not_available, context, {
     println!("Device not available fault");
     context.dump();
 });
 
-/// Double Fault Exception handler
+// Double Fault Exception handler
 exception_handler!(double_fault, context, {
     println!("Double fault");
     context.dump();
 });
 
-/// Invalid TSS Exception handler
+// Invalid TSS Exception handler
 exception_handler!(invalid_tss, context, {
     println!("Invalid TSS fault");
     context.dump();
 });
 
-/// Segment Not Present Exception handler
+// Segment Not Present Exception handler
 exception_handler!(segment_not_present, context, {
     println!("Segment not present fault");
     context.dump();
 });
 
-/// Stack Segment Exception handler
+// Stack Segment Exception handler
 exception_handler!(stack_segment, context, {
     println!("Stack segment fault");
     context.dump();
 });
 
-/// Protection Exception handler
+// Protection Exception handler
 exception_handler!(protection, context, {
     println!("General protection fault");
     context.dump();
 });
 
-/// Page Fault Exception handler
+// Page Fault Exception handler
 exception_handler!(page, context, {
     let cr2: usize;
     asm!("mov rax, cr2" : "={rax}"(cr2) : : : "intel", "volatile");
@@ -126,37 +126,37 @@ exception_handler!(page, context, {
     context.dump();
 });
 
-/// Floating Point Exception handler
+// Floating Point Exception handler
 interrupt_handler!(floating_point, context, {
     println!("Floating point exception");
     context.dump();
 });
 
-/// Alignment Check Exception handler
+// Alignment Check Exception handler
 exception_handler!(alignment_check, context, {
     println!("Alignment check fault");
     context.dump();
 });
 
-/// Machine Check Exception handler
+// Machine Check Exception handler
 interrupt_handler!(machine_check, context, {
     println!("Machine check fault");
     context.dump();
 });
 
-/// SIMD Exception handler
+// SIMD Exception handler
 interrupt_handler!(simd, context, {
     println!("SIMD floating point exception");
     context.dump();
 });
 
-/// Virtualization Exception handler
+// Virtualization Exception handler
 interrupt_handler!(virtualization, context, {
     println!("Virtualization exception");
     context.dump();
 });
 
-/// Security Exception handler
+// Security Exception handler
 exception_handler!(security, context, {
     println!("Security exception");
     context.dump();

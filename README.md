@@ -18,6 +18,24 @@ cargo make run
 
 - build-essentials or equivalent
 - qemu
+- binutils
+- grub-mkrescue
+
+## OSX specifics
+
+install a cross-compiled binutils for the linker
+
+	curl -O http://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.gz
+	tar -xvf binutils-2.24.tar.gz
+	cd binutils-2.24
+	./configure --target=x86_64-elf --prefix="$HOME/opt/cross" \
+		--disable-nls --disable-werror \
+		--disable-gdb --disable-libdecnumber --disable-readline --disable-sim
+	make
+	
+make sure `$HOME/opt/cross` is in your PATH
+
+and that the make `LINKER` variable is set to `x86_64-elf-ld`
 
 ## Setup dev env
 
@@ -25,6 +43,14 @@ cargo make run
 	git clone https://github.com/afrigon/TetanOS
 	cd TetanOS
 	cargo build
+	
+## Simpler setup dev using docker
+
+	docker build . -t tetanos-builder
+	docker run -v $(pwd):/build -it tetanos-builder bash
+	# from the container
+	cd /build
+	make
 
 ## License
 
