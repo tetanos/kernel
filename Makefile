@@ -7,8 +7,6 @@ libkernel := obj/libkernel.a
 linker_script := src/bootloader/linker.ld
 source_files := $(wildcard src/**/*.rs) src/lib.rs
 assembly_source_files := $(wildcard src/bootloader/*.asm)
-assembly_object_files := $(patsubst src/bootloader/%.asm, \
-    obj/bootloader/%.o, $(assembly_source_files))
 
 ##
 ##- Available targets:
@@ -32,24 +30,29 @@ $(iso): $(kernel)
 	cp src/bootloader/grub.cfg  obj/isofiles/boot/grub
 	$(MKGRUB) -o $(iso) obj/isofiles
 
-$(kernel): $(libkernel) $(assembly_object_files) $(linker_script)
-	$(LINKER) -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(libkernel)
+$(kernel): $(libkernel) $(linker_script) obj/bootloader/grub/headers.o obj/bootloader/loader.o
+	$(LINKER) -n -T $(linker_script) -o $(kernel) $(libkernel) obj/bootloader/grub/headers.o obj/bootloader/loader.o
 
 $(libkernel): $(source_files)
+	@mkdir -p $(basename $(libkernel))
 	RUST_TARGET_PATH=$(shell pwd)/targets xargo build --target x86_64_unknown-none
 	cp target/x86_64_unknown-none/debug/libkernel.a $(libkernel)
 
-obj/bootloader/%.o: src/bootloader/%.asm
+obj/bootloader/grub/headers.o: src/bootloader/grub/headers.asm
+	@mkdir -p obj/bootloader/grub
+	nasm -felf64 src/bootloader/grub/headers.asm -o obj/bootloader/grub/headers.o
+
+obj/bootloader/loader.o: $(assembly_source_files)
 	@mkdir -p obj/bootloader
-	nasm -felf64 $< -o $@
+	nasm -felf64 src/bootloader/loader.asm -Isrc/bootloader/ -o obj/bootloader/loader.o
 
 docker:		## Runs "make iso" within our build docker image
 	$(eval BUILDER := $(shell docker ps -a | grep 'tetanos-builder' | awk '{ print $$1; }' | head -n 1))
-	docker build docker_ctx -t tetanos-builder
+	docker pull filedesless/tetanos-builder
 	if [ $(BUILDER) ]; then\
 		docker start -ai $(BUILDER);\
 	else\
-		docker run --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder make iso;\
+		docker run --mount type=bind,source=$(shell pwd),target=/build -w /build -it filedesless/tetanos-builder make iso;\
 	fi
 
 clean:		## Cleans the build folders
@@ -57,7 +60,6 @@ clean:		## Cleans the build folders
 	if [ $(BUILDER) ]; then\
 		docker rm $(BUILDER);\
 	fi
-	docker rmi tetanos-builder
 	cargo clean
 	rm -rf obj/*
 	docker r
