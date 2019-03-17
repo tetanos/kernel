@@ -90,7 +90,7 @@ interrupt_handler!(device_not_available, context, {
 
 /// Double Fault Exception handler
 exception_handler!(double_fault, context, {
-    println!("Double fault");
+    //println!("Double fault");
     loop {}
     context.dump();
 });

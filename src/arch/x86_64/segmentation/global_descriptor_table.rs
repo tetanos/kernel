@@ -17,7 +17,7 @@ static mut GDT_REF: DescriptorTablePointer<Entry> = DescriptorTablePointer {
 /// Table containing information about memory segments.
 ///
 /// Flat setup **REQUIRES TWEAKING**
-static mut GDT: [Entry; 4] = [
+static mut GDT: [Entry; 5] = [
     Entry::zero(),
     // Kernel Code
     Entry::new(
@@ -37,8 +37,15 @@ static mut GDT: [Entry; 4] = [
     Entry::new(
         0,
         0,
-        Access::new(true, RingLevel::Zero, false, true, false, false, true),
+        Access::new(true, RingLevel::Three, false, true, false, false, true),
         Flags(cpu::Mode::Long, Granularity::Byte),
+    ),
+    // The TSS is 16 bytes long in 64 bit
+    Entry::new(
+        0,
+        0,
+        Access::new(false, RingLevel::Zero, false, false, false, false, false),
+        Flags(cpu::Mode::Real, Granularity::Byte),
     ),
 ];
 //static mut GDT: [Entry; 7] = [
@@ -103,8 +110,10 @@ pub unsafe fn init() {
     GDT[Type::TaskState as usize].set_offset(&TSS as *const _ as u32);
     GDT[Type::TaskState as usize].set_limit(size_of::<TaskStateSegment>() as u32);
 
+    println!("{:x}", &TSS as *const _ as u32);
+
     // idk wtf to put in there
-    TSS.rsp[0] = 0xdeadbeef as u64;
+    //TSS.rsp[0] = 0xdeadbeef as u64;
 
     segmentation::load_code_segment(SegmentSelector::new(Type::KernelCode, RingLevel::Zero));
     segmentation::load_data_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
@@ -112,7 +121,7 @@ pub unsafe fn init() {
     segmentation::load_g_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
     segmentation::load_stack_segment(SegmentSelector::new(Type::KernelData, RingLevel::Zero));
 
-    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Zero));
+    task_state_segment::load_task_register(SegmentSelector::new(Type::TaskState, RingLevel::Three));
 }
 
 /// Entry in the GDT.
