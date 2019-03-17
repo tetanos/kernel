@@ -5,6 +5,7 @@ iso := obj/tetanos.iso
 kernel := obj/kernel.bin
 libkernel := obj/libkernel.a
 linker_script := src/bootloader/linker.ld
+source_files := $(wildcard src/**/*.rs) src/lib.rs
 assembly_source_files := $(wildcard src/bootloader/*.asm)
 assembly_object_files := $(patsubst src/bootloader/%.asm, \
     obj/bootloader/%.o, $(assembly_source_files))
@@ -24,7 +25,7 @@ $(iso): $(kernel)
 $(kernel): $(libkernel) $(assembly_object_files) $(linker_script)
 	$(LINKER) -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(libkernel)
 
-$(libkernel):
+$(libkernel): $(source_files)
 	RUST_TARGET_PATH=$(shell pwd)/targets xargo build --target x86_64_unknown-none
 	cp target/x86_64_unknown-none/debug/libkernel.a $(libkernel)
 
@@ -32,11 +33,13 @@ obj/bootloader/%.o: src/bootloader/%.asm
 	@mkdir -p obj/bootloader
 	nasm -felf64 $< -o $@
 
+docker:
+	docker build . -t tetanos-builder
+	docker run --rm --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder  make iso
+
 clean:
 	cargo clean
-	rm -rf Cargo.lock
-	rm -f **/*.o
-	rm -rf obj/isofiles
+	rm -rf obj/*
 
 doc:
 	cargo doc --no-deps --open

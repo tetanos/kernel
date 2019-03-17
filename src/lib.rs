@@ -27,13 +27,16 @@ pub extern "C" fn kernel_main() -> ! {
 }
 
 pub fn init() -> ! {
+    /*
     gdt::init();
     interrupts::init();
 
     use interrupts::PICS;
     unsafe { PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
+
     vga::term::TERM.lock().init();
+     */
 
     hlt_loop();
 }
