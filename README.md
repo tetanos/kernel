@@ -1,17 +1,31 @@
 # TetanOS
 An attempt at building an operating system, make sure you're vaxxed.
 
-The kernel is built in a docker container.
+The kernel is built in a docker container. (https://github.com/tetanos/builder)
 
-See https://github.com/tetanos/builder
+## Build deps
 
-## Build from docker
+- make
+- nasm
+- ld
+- grub-mkrescue
+  - xorriso
+- qemu (optional)
 
-	make docker
+## Rust deps
 
-## Build natively
+	curl https://sh.rustup.rs -sSf | sh
+	rustup default nightly
+	rustup component add rust-src
+	cargo install xargo
+
+## Build
 
 	make iso
+	
+## Build from Docker
+
+	make docker
 
 ## Run inside qemu
 
