@@ -10,9 +10,19 @@ assembly_source_files := $(wildcard src/bootloader/*.asm)
 assembly_object_files := $(patsubst src/bootloader/%.asm, \
     obj/bootloader/%.o, $(assembly_source_files))
 
-all: iso
+##
+##- Available targets:
+##
+help:		## This help dialog.
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+
+iso:		## Builds the iso file from the kernel bin and grub
 iso: $(iso)
-kernel: $(libkernel)
+kernel:		## Links the libkernel and the bootloader
+kernel: $(kernel)
+libkernel:	## Builds the rust libkernel
+libkernel: $(libkernel)
+run:		## Runs the iso within qemu
 run: $(iso)
 	qemu-system-x86_64 -cdrom $(iso)
 
@@ -33,15 +43,15 @@ obj/bootloader/%.o: src/bootloader/%.asm
 	@mkdir -p obj/bootloader
 	nasm -felf64 $< -o $@
 
-docker:
+docker:		## Runs "make iso" within our build docker image
 	docker build . -t tetanos-builder
-	docker run --rm --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder  make iso
+	docker run --rm --mount type=bind,source=$(shell pwd),target=/build -w /build -it tetanos-builder make iso
 
-clean:
+clean:		## Cleans the build folders
 	cargo clean
 	rm -rf obj/*
 
-doc:
+doc:		## Builds and open the libkernel documentation
 	cargo doc --no-deps --open
 
 format:
