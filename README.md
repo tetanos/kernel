@@ -1,39 +1,52 @@
 # TetanOS
-An attempt at building an operating system, make sure you're vaxxed.
+An attempt at building an operating system, make sure you're vaccinated.
 
-The kernel is built in a docker container. (https://github.com/tetanos/builder)
-
-## Build deps
+## Build dependencies
 
 - make
 - nasm
 - ld
 - grub-mkrescue
   - xorriso
-- qemu (optional)
 
-## Rust deps
+## Rust dependencies
 
-	curl https://sh.rustup.rs -sSf | sh
-	rustup default nightly
-	rustup component add rust-src
-	cargo install xargo
+```sh
+curl https://sh.rustup.rs -sSf | sh
+rustup default nightly
+rustup component add rust-src
+cargo install xargo
+```
 
 ## Build
 
-	make iso
-	
+```sh
+make iso
+```
+
 ## Build from Docker
 
-	make docker
+The docker image used is available [here](https://github.com/tetanos/builder).
 
-## Run inside qemu
+```sh
+make docker
+```
 
-	make run
+## Run with qemu
 
-## Flash to a usb key
+`qemu-system-x86-64` is required to run this command.
 
-	dd if=obj/tetanos.iso of=/dev/diskX && sync
+```sh
+make run
+```
+
+## Flash a usb drive
+
+Be careful with this command, it will format your usb drive.
+
+```sh
+dd if=obj/tetanos.iso of=/dev/diskX && sync
+```
 
 ## License
 
