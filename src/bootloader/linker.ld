@@ -1,4 +1,4 @@
-ENTRY(start)
+ENTRY(loader_start)
 
 SECTIONS {
     . = 1M;
@@ -11,5 +11,15 @@ SECTIONS {
     .text :
     {
         *(.text)
+    }
+
+    .bss :
+    {
+        *(.bss)
+    }
+
+    .rodata :
+    {
+        *(.rodata)
     }
 }
