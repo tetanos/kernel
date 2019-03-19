@@ -8,54 +8,58 @@ memory:
     call memory.init_segmentation
     ret
 
+; initialize page tables linking them together
+; CLOBBER
+;   eax, ecx, esi
 .init_page_tables:
     mov esi, string_page_tables
     call log.check
 
-	;; map first P4 entry to P3 table
-	mov eax, page_tables.p3
-	or eax, 0b11		; present + writable
-	mov [page_tables.p4], eax
+	mov ecx, page_tables.p3                 ; p4[0] points to p3
+	or ecx, 0b11		                    ; mark as present and writable
+	mov [page_tables.p4], ecx
 
-	;; map first P3 entry to P2 table
-	mov eax, page_tables.p2
-	or eax, 0b11		; present + writable
-	mov [page_tables.p3], eax
+	mov ecx, page_tables.p2                 ; p3[0] points to p2
+	or ecx, 0b11		                    ; mark as present and writable
+	mov [page_tables.p3], ecx
 
-	;; map each P2 entry to a huge 2MiB page
-	mov ecx, 0		; counter variable
+	mov ecx, 0
+; map p2 entries to 2mb huge pages
+; CLOBBER
+;  eax, ecx 
+.init_p2_loop:
+	mov eax, 0x200000                       ; 2mb
+	mul ecx
+	or eax, 0b10000011	                    ; mark as present, writable and huge
+	mov [page_tables.p2 + ecx * 8], eax     ; p2[ecx] points to 2mb page
 
-.map_p2:
-	;; map ecx-th P2 entry to a huge page that starts at address 2MiB*ecx
-	mov eax, 0x200000	      ; 2MiB
-	mul ecx			      ; start address of ecx-th page
-	or eax, 0b10000011	      ; present + writable + huge
-	mov [page_tables.p2 + ecx * 8], eax ; map ecx-th entry
-	inc ecx			      ; increase counter
-	cmp ecx, 512		      ; if counter == 512, the whole P2 table is mapped
-	jne .map_p2	      ; else map the next entry
+	inc ecx
+	cmp ecx, 512
+	jne .init_p2_loop
 
     call log.check_ok
 	ret
 
+;
+; CLOBBER
+;  eax, ecx, esi
 .init_paging:
     mov esi, string_paging
     call log.check
 
-	;; load P4 to cr3 register (cpu uses this to access the P4 table)
-	mov eax, page_tables.p4
+	mov eax, page_tables.p4                 ; cr3 = *p4
 	mov cr3, eax
-	;; enable PAE-flag in cr4 (Physical Address Extension)
-	mov eax, cr4
-	or eax, 1 << 5
-	mov cr4, eax
-	;; set the long mode bit in the EFER MSR (model specific register)
-	mov ecx, 0xC0000080
+    
+    mov ecx, cr4                            ; enable physical address extensions in cr4
+    or ecx, 1 << 5
+    mov cr4, ecx
+
+	mov ecx, 0xC0000080                     ; enable long mode in the model specific register 0xC0000080
 	rdmsr
 	or eax, 1 << 8
 	wrmsr
-	;; enable paging in the cr0 register
-	mov eax, cr0
+
+	mov eax, cr0                            ; enable paging in cr0
 	or eax, 1 << 31
 	mov cr0, eax
 
