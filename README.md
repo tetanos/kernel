@@ -13,8 +13,7 @@ An attempt at building an operating system, make sure you're vaccinated.
 
 ```sh
 curl https://sh.rustup.rs -sSf | sh
-rustup default nightly
-rustup component add rust-src
+rustup component add --toolchain nightly rust-src
 cargo install xargo
 ```
 
