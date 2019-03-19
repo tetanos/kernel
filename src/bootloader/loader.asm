@@ -35,7 +35,7 @@ multiboot:
 	jne multiboot.error
 	ret
 .error:
-	mov esi, error_multiboot
+	mov esi, error_string_multiboot
 	jmp error
 
 %include "vga.asm"
@@ -46,5 +46,5 @@ multiboot:
 section .rodata
 error_string:
     db "An error occured, ",0
-error_multiboot:
+error_string_multiboot:
     db "could not validate the multiboot magic number",0

@@ -19,10 +19,12 @@ long_mode:
 	ret
 
 .error:
-	mov al, "2"
+	mov esi, error_string_long_mode
 	jmp error
 
 ; jump to the rust kernal enabling 64 bits long mode
+; CLOBBER
+;   ax
 .enable:
 	mov ax, 0               ; clear segment registers
 	mov ss, ax
@@ -35,5 +37,5 @@ long_mode:
     hlt
 
 section .rodata
-error_long_mode:
+error_string_long_mode:
     db "long mode is not available on this system",0
