@@ -48,3 +48,5 @@ error_string_long_mode:
     db "long mode is not available on this system",0
 string_long_mode:
     db "checking long mode",0
+string_long_mode_jump:
+    db 10,13,"88 miles per hour!",10,13,"jumping to 64 bits mode",0

@@ -41,8 +41,9 @@ loader_start:
 
     call memory.init
 
-    hlt
-	jmp gdt.code:long_mode.enable
+    mov esi, string_long_mode_jump
+    call log.check
+    jmp gdt.code:long_mode.enable
 
 error:
     mov edx, esi
