@@ -6,6 +6,7 @@ bits 32
 %define VGA_BUFFER_HEIGHT 25
 %define VGA_BUFFER_ROW_SIZE VGA_BUFFER_WIDTH * 2
 
+%define VGA_STYLE_GRAY 0x7
 %define VGA_STYLE_BLUE 0x9
 %define VGA_STYLE_GREEN 0xa
 %define VGA_STYLE_RED 0xc
@@ -19,8 +20,9 @@ log:
 ; CLOBBER
 ;   eax, ecx
 .info:
-    call vga.set_style_normal
+    call vga.set_style_info
     call vga.println
+    call vga.set_style_normal
     ret
 
 ; log a string with ok style
@@ -67,6 +69,28 @@ log:
     call vga.set_style_normal
     ret
 
+.check:
+    call vga.set_style_info
+    call vga.print
+
+    mov al, 0x2e                                    ; print "... "
+    call vga.print_char
+    call vga.print_char
+    call vga.print_char
+    mov al, 0x20
+    call vga.print_char
+    ret
+
+.check_ok:
+    mov esi, log_string_ok
+    call log.success
+    ret
+
+.check_error:
+    mov esi, log_string_fail
+    call log.error
+    ret
+
 vga:
 ; print a string and the crlf sequence
 ; IN
@@ -75,11 +99,15 @@ vga:
 ;   eax, ecx
 .println:
     call vga.print
-    mov al, 13
-    call vga.print_char
-    mov al, 10
-    call vga.print_char
+    call vga.print_crlf
     ret
+
+; move the cursor at the start of the next line
+.print_crlf:
+    call vga.print_cr
+    call vga.print_lf
+    ret
+
 
 ; print a string
 ; IN
@@ -162,6 +190,18 @@ vga:
     jb vga.scroll_up_clear_loop
     ret
 
+; clear the entire buffer
+; CLOBBER
+;   ecx
+.clear:
+    mov ecx, VGA_BUFFER_ADDRESS
+.clear_loop:
+    mov dword [ecx], 0x0f200f20
+    add ecx, 4
+    cmp ecx, VGA_BUFFER_ADDRESS + (VGA_BUFFER_ROW_SIZE * VGA_BUFFER_HEIGHT)
+    jb vga.clear_loop
+    ret
+
 ; set the style for the vga text mode
 ; IN
 ;   al: style byte to set
@@ -172,6 +212,11 @@ vga:
 ; set the style to normal
 .set_style_normal:
     mov byte [vga_cursor.style], VGA_STYLE_WHITE
+    ret
+
+; set the style to info
+.set_style_info:
+    mov byte [vga_cursor.style], VGA_STYLE_GRAY
     ret
 
 ; set the style to ok
@@ -202,3 +247,9 @@ vga_cursor:
     dw 0
 .style:
     db VGA_STYLE_WHITE
+
+section .rodata
+log_string_ok:
+    db "ok",0
+log_string_fail:
+    db "fail",0

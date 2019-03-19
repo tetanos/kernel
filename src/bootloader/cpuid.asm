@@ -26,9 +26,12 @@ cpuid:
 	ret
 
 .error:
+    call log.check_error
 	mov esi, error_string_cpuid
 	jmp error
 
 section .rodata
 error_string_cpuid:
     db "cpuid is not available on this system",0
+string_cpuid:
+    db "checking cpuid",0

@@ -2,7 +2,16 @@ section .text:
 bits 32
 
 memory:
+.init:
+    call memory.init_page_tables
+    call memory.init_paging
+    call memory.init_segmentation
+    ret
+
 .init_page_tables:
+    mov esi, string_page_tables
+    call log.check
+
 	;; map first P4 entry to P3 table
 	mov eax, page_tables.p3
 	or eax, 0b11		; present + writable
@@ -25,9 +34,14 @@ memory:
 	inc ecx			      ; increase counter
 	cmp ecx, 512		      ; if counter == 512, the whole P2 table is mapped
 	jne .map_p2	      ; else map the next entry
+
+    call log.check_ok
 	ret
 
 .init_paging:
+    mov esi, string_paging
+    call log.check
+
 	;; load P4 to cr3 register (cpu uses this to access the P4 table)
 	mov eax, page_tables.p4
 	mov cr3, eax
@@ -44,10 +58,18 @@ memory:
 	mov eax, cr0
 	or eax, 1 << 31
 	mov cr0, eax
+
+    call log.check_ok
 	ret
 
+; load a basic global descriptor table
 .init_segmentation:
+    mov esi, string_segmentation
+    call log.check
+
     lgdt [gdt.pointer]
+
+    call log.check_ok
     ret
 
 section .bss
@@ -75,3 +97,10 @@ gdt:
 .pointer:
 	dw $ - gdt - 1
 	dq gdt
+
+string_page_tables:
+    db "loading page tables",0
+string_paging:
+    db "initializing paging",0
+string_segmentation:
+    db "segmenting memory",0

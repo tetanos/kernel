@@ -25,6 +25,7 @@ long_mode:
 	ret
 
 .error:
+    call log.check_error
 	mov esi, error_string_long_mode
 	jmp error
 
@@ -32,16 +33,18 @@ long_mode:
 ; CLOBBER
 ;   ax
 .enable:
-	mov ax, 0               ; clear segment registers
+	mov ax, 0                                   ; clear segment registers
 	mov ss, ax
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
     
-	call kernel_start       ; jump to the rust kernel entry point
+	call kernel_start                           ; jump to the rust kernel entry point
     hlt
 
 section .rodata
 error_string_long_mode:
     db "long mode is not available on this system",0
+string_long_mode:
+    db "checking long mode",0
