@@ -4,15 +4,75 @@ bits 32
 %define VGA_BUFFER_ADDRESS 0xb8000
 %define VGA_BUFFER_WIDTH 80
 %define VGA_BUFFER_HEIGHT 25
-%define VGA_STYLE_WHITE 0xf
+%define VGA_BUFFER_ROW_SIZE VGA_BUFFER_WIDTH * 2
+
+%define VGA_STYLE_BLUE 0x9
+%define VGA_STYLE_GREEN 0xa
 %define VGA_STYLE_RED 0xc
+%define VGA_STYLE_YELLOW 0xe
+%define VGA_STYLE_WHITE 0xf
+
+log:
+; log a string with normal style
+; IN
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   eax, ecx
+.info:
+    call vga.set_style_normal
+    call vga.println
+    ret
+
+; log a string with ok style
+; IN
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   eax, ecx
+.ok:
+    call vga.set_style_ok
+    call vga.println
+    call vga.set_style_normal
+    ret
+
+; log a string with success style
+; IN
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   eax, ecx
+.success:
+    call vga.set_style_success
+    call vga.println
+    call vga.set_style_normal
+    ret
+
+; log a string with warning style
+; IN
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   eax, ecx
+.warning:
+    call vga.set_style_warning
+    call vga.println
+    call vga.set_style_normal
+    ret
+
+; log a string with error style
+; IN
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   eax, ecx
+.error:
+    call vga.set_style_error
+    call vga.println
+    call vga.set_style_normal
+    ret
 
 vga:
 ; print a string and the crlf sequence
 ; IN
 ;   esi: pointer to a null-terminated string
 ; CLOBBER
-;   ax, edi, edx
+;   eax, ecx
 .println:
     call vga.print
     mov al, 13
@@ -25,7 +85,7 @@ vga:
 ; IN
 ;   esi: pointer to a null-terminated string
 ; CLOBBER
-;   ax, edi, edx
+;   eax, ecx
 .print:
     pushf
     cld
@@ -45,7 +105,7 @@ vga:
 ; IN
 ;   al: character to print
 ; CLOBBER
-;   ax, edi, edx
+;   eax, ecx
 .print_char:
     cmp al, 13
     je vga.print_cr
@@ -53,34 +113,85 @@ vga:
     cmp al, 10
     je vga.print_lf
 
-    mov ah, VGA_STYLE_WHITE
+    mov ah, [vga_cursor.style]
 
-    xor ecx, ecx
+    xor ecx, ecx                                    ; cx = y * WIDTH + x
     imul cx, [vga_cursor.y], VGA_BUFFER_WIDTH
     add cx, [vga_cursor.x]
-    shl cx, 1                                  ; edi *= 2 to take style bytes into account
+    shl cx, 1                                       ; cx *= 2 to take style bytes into account
 
-    mov word [ecx + VGA_BUFFER_ADDRESS], ax     ; actual write to the VGA text buffer
+    mov word [ecx + VGA_BUFFER_ADDRESS], ax         ; actual write to the VGA text buffer
 
     inc word [vga_cursor.x]
-    cmp word [vga_cursor.x], VGA_BUFFER_WIDTH   ; if the cursor is going offscreen to the right,
-    jae vga.wrap_line                           ; wrap to the next line
+    cmp word [vga_cursor.x], VGA_BUFFER_WIDTH       ; if the cursor is going offscreen to the right,
+    jae vga.wrap_line                               ; wrap to the next line
     ret
+; set the cusror x position to 0
 .print_cr:
     mov word [vga_cursor.x], 0
     ret
+; lower the cursor y position by 1, scroll up if it reached the bottom of the buffer
 .print_lf:
-    cmp word [vga_cursor.y], VGA_BUFFER_HEIGHT  ; if the cursor is going offscreen to the bottom,
-    jae .scroll_up                              ; scroll the entire buffer up by one row
+    cmp word [vga_cursor.y], VGA_BUFFER_HEIGHT - 1  ; if the cursor is going offscreen to the bottom,
+    jae .scroll_up                                  ; scroll the entire buffer up by one row
 
     inc word [vga_cursor.y]
     ret
+; wrap cursor to the start of the next line when the text overflows to the right
 .wrap_line:
     call vga.print_cr
     call vga.print_lf
     ret
+; scroll the entire buffer one row up and clear the last line
+; CLOBBER
+;   eax, ecx
 .scroll_up:
-    
+    mov ecx, VGA_BUFFER_ADDRESS
+.scroll_up_loop:
+    mov eax, dword [ecx + VGA_BUFFER_ROW_SIZE]
+    mov dword [ecx], eax                            ; shift data one row down, 4 bytes at a time
+    add ecx, 4
+
+    cmp ecx, VGA_BUFFER_ADDRESS + (VGA_BUFFER_ROW_SIZE * (VGA_BUFFER_HEIGHT - 1))
+    jb vga.scroll_up_loop
+; clear the last line with spaces
+.scroll_up_clear_loop:
+    mov dword [ecx], 0x0f200f20
+    add ecx, 4
+    cmp ecx, VGA_BUFFER_ADDRESS + (VGA_BUFFER_ROW_SIZE * VGA_BUFFER_HEIGHT)
+    jb vga.scroll_up_clear_loop
+    ret
+
+; set the style for the vga text mode
+; IN
+;   al: style byte to set
+.set_style:
+    mov byte [vga_cursor.style], al
+    ret
+
+; set the style to normal
+.set_style_normal:
+    mov byte [vga_cursor.style], VGA_STYLE_WHITE
+    ret
+
+; set the style to ok
+.set_style_ok:
+    mov byte [vga_cursor.style], VGA_STYLE_BLUE
+    ret
+
+; set the style to success
+.set_style_success:
+    mov byte [vga_cursor.style], VGA_STYLE_GREEN
+    ret
+
+; set the style to warning
+.set_style_warning:
+    mov byte [vga_cursor.style], VGA_STYLE_YELLOW
+    ret
+
+; set the style to error
+.set_style_error:
+    mov byte [vga_cursor.style], VGA_STYLE_RED
     ret
 
 section .data
@@ -89,3 +200,5 @@ vga_cursor:
     dw 0
 .y:
     dw 0
+.style:
+    db VGA_STYLE_WHITE
