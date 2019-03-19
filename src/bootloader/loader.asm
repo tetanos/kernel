@@ -17,6 +17,9 @@ loader_start:
     call memory.init_segmentation
 
     mov esi, error_string
+    call vga.println
+
+    mov esi, error_multiboot
     call vga.print
 
     hlt
@@ -36,7 +39,6 @@ multiboot:
 	cmp eax, MULTIBOOT_MAGIC
 	jne multiboot.error
 	ret
-
 .error:
 	mov esi, error_multiboot
 	jmp error

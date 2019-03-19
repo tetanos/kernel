@@ -8,49 +8,35 @@ bits 32
 %define VGA_STYLE_RED 0xc
 
 vga:
-; print a string and a newline
+; print a string and the crlf sequence
 ; IN
-;   esi: points at zero-terminated String
+;   esi: pointer to a null-terminated string
+; CLOBBER
+;   ax, edi, edx
 .println:
-;    push eax
-;    push ebx
-;    push ecx
-;    push edx
-;
-;    call vga_print
-;
-;    ; newline
-;    mov edx, 0
-;    mov eax, vga_position
-;    mov ecx, 80 * 2
-;    div ecx
-;    add eax, 1
-;    mul ecx
-;    mov vga_position, eax
-;
-;    pop edx
-;    pop ecx
-;    pop ebx
-;    pop eax
-;
+    call vga.print
+    mov al, 13
+    call vga.print_char
+    mov al, 10
+    call vga.print_char
     ret
 
 ; print a string
 ; IN
-;   esi: points at zero-terminated String
+;   esi: pointer to a null-terminated string
 ; CLOBBER
-;   ah, ebx
+;   ax, edi, edx
 .print:
     pushf
     cld
-.loop:
+.print_loop:
     lodsb
     test al, al
-    jz .end
+    jz vga.print_end
 
     call vga.print_char
-    jmp .loop
-.end:
+    jmp vga.print_loop
+.print_end:
     popf
     ret
 
@@ -59,34 +45,39 @@ vga:
 ; IN
 ;   al: character to print
 ; CLOBBER
-;   ah, ebx
+;   ax, edi, edx
 .print_char:
     cmp al, 13
-    je .print_cr
+    je vga.print_cr
 
     cmp al, 10
-    je .print_lf
+    je vga.print_lf
 
     mov ah, VGA_STYLE_WHITE
 
-    mov edi, [vga_cursor.x]
-    shl edi, 1                              ; take style bytes into account
-    mov word [edi + VGA_BUFFER_ADDRESS], ax
+    xor ecx, ecx
+    imul cx, [vga_cursor.y], VGA_BUFFER_WIDTH
+    add cx, [vga_cursor.x]
+    shl cx, 1                                  ; edi *= 2 to take style bytes into account
 
-    inc byte [vga_cursor.x]
+    mov word [ecx + VGA_BUFFER_ADDRESS], ax     ; actual write to the VGA text buffer
+
+    inc word [vga_cursor.x]
+    cmp word [vga_cursor.x], VGA_BUFFER_WIDTH   ; if the cursor is going offscreen to the right,
+    jae vga.wrap_line                           ; wrap to the next line
     ret
 .print_cr:
-    mov byte [vga_cursor.x], 0
+    mov word [vga_cursor.x], 0
     ret
 .print_lf:
-    cmp byte [vga_cursor.y], VGA_BUFFER_HEIGHT
-    jae .scroll_up
+    cmp word [vga_cursor.y], VGA_BUFFER_HEIGHT  ; if the cursor is going offscreen to the bottom,
+    jae .scroll_up                              ; scroll the entire buffer up by one row
 
-    inc byte [vga_cursor.y]
+    inc word [vga_cursor.y]
     ret
 .wrap_line:
-    call .print_cr
-    call .print_lf
+    call vga.print_cr
+    call vga.print_lf
     ret
 .scroll_up:
     
@@ -95,6 +86,6 @@ vga:
 section .data
 vga_cursor:
 .x:
-    db 0
+    dw 0
 .y:
-    db 0
+    dw 0
