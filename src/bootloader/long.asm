@@ -3,19 +3,25 @@ extern kernel_start
 section .text
 bits 64
 
-long_mode:
-.check:
-	;; test if extended processor info in available
-	mov eax, 0x80000000	; implicit argument for cpuid
-	cpuid			; get highest supported argument
-	cmp eax, 0x80000001	; it needs to be at least 0x80000001
-	jb long_mode.error	; if it's less, the CPU is too old for long mode
+; https://en.wikipedia.org/wiki/CPUID
+%define CPUID_LARGEST_EXTENDED_FUNCTION 0x80000000
+%define CPUID_EXTENDED_FEATURES 0x80000001
+%define CPUID_FEATURE_64BITS 1 << 29
 
-	;; use extended info to test if long mode is available
-	mov eax, 0x80000001	; argument for extended processor info
-	cpuid			; returns various feature bits in ecx and edx
-	test edx, 1 << 29	; test if the LM-bit is set in the D-register
-	jz long_mode.error	; If it's not set, there is no long mode
+long_mode:
+; check if the system supports long mode
+; CLOBBER
+;   eax, edx
+.check:
+	mov eax, CPUID_LARGEST_EXTENDED_FUNCTION
+	cpuid
+	cmp eax, CPUID_EXTENDED_FEATURES            ; make sure cpuid supports extended features
+	jb long_mode.error
+
+	mov eax, CPUID_EXTENDED_FEATURES            ; get infos about extended features
+	cpuid
+	test edx, CPUID_FEATURE_64BITS              ; test if system support long mode
+	jz long_mode.error
 	ret
 
 .error:

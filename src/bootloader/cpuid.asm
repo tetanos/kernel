@@ -2,7 +2,7 @@ section .text
 bits 32
 
 cpuid:
-; check if the system support cpuid using bit 21 of eflags
+; check if the system supports cpuid using bit 21 of eflags
 ; CLOBBER
 ;   eax, ecx
 .check:
