@@ -16,14 +16,17 @@ loader_start:
     call memory.init_paging
     call memory.init_segmentation
 
+    mov esi, error_multiboot
+    call error
 	jmp gdt.code:long_mode.enable
 
 error:
-    mov eax, esi
+    mov edx, esi
     mov esi, error_string
-    call log.error
-    mov esi, eax
-    call log.error
+    call vga.set_style_error
+    call vga.print
+    mov esi, edx
+    call vga.println
     hlt
 
 multiboot:
