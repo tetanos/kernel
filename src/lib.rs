@@ -18,6 +18,9 @@ mod vga;
 pub mod arch;
 pub use arch::*;
 
+/// Architecture independent modules
+pub mod common;
+
 /// Panic Handlers
 pub mod panic;
 
@@ -25,11 +28,6 @@ pub mod panic;
 pub fn kernel_main() -> ! {
     vga::ferris_say("This is TetanOS");
     println!("Be careful, it's kinda rusty in here.");
-
-    //    use interrupts::PICS;
-    //    unsafe { PICS.lock().initialize() };
-    //    interrupt::enable();
-    //    vga::term::TERM.lock().init();
 
     loop {
         interrupt::halt();

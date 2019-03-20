@@ -7,9 +7,9 @@ edition = "2018"
 
 documentation = ""
 homepage = ""
-repository = "https://github.com/afrigon/TetanOS"
-readme = "https://github.com/afrigon/TetanOS/blob/master/README.md"
-license-file = "https://github.com/afrigon/TetanOS/blob/master/LICENSE"
+repository = "https://github.com/tetanos/TetanOS"
+readme = "https://github.com/tetanos/TetanOS/blob/master/README.md"
+license-file = "https://github.com/tetanos/TetanOS/blob/master/LICENSE"
 keywords = ["operating", "system", "os", "tetanus", "tetanos", "vaxx", "vaccinated"]
 categories = ["no-std"]
 
@@ -19,14 +19,13 @@ path = "src/lib.rs"
 crate-type = ["staticlib"]
 
 [badges]
-travis-ci = { repository = "https://github.com/afrigon/TetanOS", branch = "master" }
+travis-ci = { repository = "https://github.com/tetanos/TetanOS", branch = "master" }
 maintenance = { status = "experimental" }
 
 [dependencies]
 spin = "0.4.9"
 volatile = "0.2.3"
 x86_64 = "0.4.0"
-pic8259_simple = "0.1.1"
 pc-keyboard = "0.3.1"
 
 [dev-dependencies]

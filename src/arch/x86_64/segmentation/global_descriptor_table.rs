@@ -110,8 +110,6 @@ pub unsafe fn init() {
     GDT[Type::TaskState as usize].set_offset(&TSS as *const _ as u32);
     GDT[Type::TaskState as usize].set_limit(size_of::<TaskStateSegment>() as u32);
 
-    println!("{:x}", &TSS as *const _ as u32);
-
     // idk wtf to put in there
     //TSS.rsp[0] = 0xdeadbeef as u64;
 

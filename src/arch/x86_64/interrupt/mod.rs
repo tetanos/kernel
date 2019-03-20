@@ -41,7 +41,7 @@ pub struct InterruptContext {
 
 impl InterruptContext {
     fn dump(&self) {
-        // println!("{:#x?}", &self);
+        //println!("{:#x?}", &self);
     }
 }
 
@@ -95,9 +95,6 @@ pub fn breakpoint() {
 /// Return from the current interrupt.
 #[inline(always)]
 pub fn ireturn() {
-    unsafe {
-        asm!("hlt" : : : : "intel", "volatile");
-    }
     unsafe { asm!("iretq" : : : : "intel", "volatile") }
 }
 

@@ -1,15 +1,43 @@
 use super::interrupt;
 use crate::arch::x86_64::hardware::cpu;
+use crate::arch::x86_64::hardware::io::programmable_interrupt_controller as pic;
 use crate::interrupt_handler;
 
+macro_rules! irq_handler {
+    ($name: ident, $callback: block) => {
+        #[naked]
+        pub unsafe extern "C" fn $name() {
+            #[inline(never)]
+            unsafe fn handler() {
+                $callback
+            }
+
+            handler();
+
+            interrupt::ireturn();
+        }
+    };
+}
+
+pub unsafe fn acknowledge(irq: u8) {
+    if irq < 16 {
+        pic::MASTER.acknowledge();
+        if irq >= 8 {
+            pic::SLAVE.acknowledge();
+        }
+    }
+}
+
 // Programmable Interrupt Timer
-interrupt_handler!(programmable_interrupt_timer, context, {
-    context.dump();
+irq_handler!(programmable_interrupt_timer, {
+    println!("pit");
+    pic::MASTER.acknowledge();
 });
 
 // Keyboard Interrupt Request
-interrupt_handler!(keyboard, context, {
-    context.dump();
+irq_handler!(keyboard, {
+    println!("keyboard irq");
+    acknowledge(1);
 });
 
 // Cascade

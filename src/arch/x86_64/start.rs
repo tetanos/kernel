@@ -1,3 +1,4 @@
+use super::hardware::io::programmable_interrupt_controller as pic;
 use super::interrupt;
 use super::segmentation;
 use crate::kernel_main;
@@ -7,6 +8,9 @@ use crate::kernel_main;
 pub unsafe extern "C" fn kernel_start() -> ! {
     segmentation::global_descriptor_table::init();
     interrupt::descriptor_table::init();
+
+    pic::init();
+    interrupt::enable();
 
     kernel_main();
 }
