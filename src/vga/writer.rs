@@ -37,7 +37,7 @@ impl Writer {
     }
 
     fn erase_byte(&mut self) {
-        if self.cursor_x < 15 {
+        if self.cursor_x <= 0 {
             return;
         }
 
