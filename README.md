@@ -7,7 +7,7 @@ An attempt at building an operating system, make sure you're vaccinated.
 - nasm
 - ld
 - grub-mkrescue
-  - xorriso
+- xorriso
 
 ## Rust dependencies
 
@@ -47,7 +47,25 @@ Be careful with this command, it will format your usb drive.
 dd if=obj/tetanos.iso of=/dev/diskX && sync
 ```
 
+## Note for OSX dev
+
+GNU ld doesn't work on OSX, so we cross compile it for elf target
+
+```sh
+mkdir -p ~/src/ && cd ~/src/
+wget https://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.gz
+tar -xvzf binutils-2.24.tar.gz && cd binutils-2.24
+./configure --target=x86_64-elf --prefix="$HOME/opt/cross" \
+	--disable-nls --disable-werror \
+	--disable-gdb --disable-libdecnumber --disable-readline --disable-sim
+make
+make install
+```
+
+then set LINKER=~/cross/bin/x86_64-elf-ld when calling make (required for `kernel` target)
+
+`make kernel LINKER=~/cross/bin/x86_64-elf-ld`
+
 ## License
 
 TetanOS is MIT licensed.
-
