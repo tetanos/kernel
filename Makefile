@@ -5,7 +5,7 @@ iso := obj/tetanos.iso
 kernel := obj/kernel.bin
 libkernel := obj/libkernel.a
 linker_script := src/bootloader/linker.ld
-source_files := $(wildcard src/**/*.rs) src/lib.rs
+source_files := $(shell find src/ "*.rs") src/lib.rs
 assembly_source_files := $(wildcard src/bootloader/*.asm)
 
 ##
