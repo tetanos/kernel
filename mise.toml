@@ -3,3 +3,11 @@ lockfile = true
 
 [tools]
 rust = "nightly"
+
+[tasks.build]
+description = "Builds the iso file from the kernel bin and grub"
+run = "make iso"
+
+[tasks.run]
+description = "Runs the iso within qemu"
+run = "make run"
