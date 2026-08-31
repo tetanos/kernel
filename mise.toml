@@ -4,10 +4,63 @@ lockfile = true
 [tools]
 rust = "nightly"
 
+[tasks.libkernel]
+description = "Builds the rust libkernel"
+sources = ["src/**/*.rs", "Cargo.toml", "targets/*.json"]
+outputs = ["obj/libkernel.a"]
+run = [
+  "mkdir -p obj",
+  "RUST_TARGET_PATH={{config_root}}/targets xargo build --target x86_64_unknown-none",
+  "cp target/x86_64_unknown-none/debug/libkernel.a obj/libkernel.a",
+]
+
+[tasks.kernel]
+description = "Links the libkernel and the bootloader"
+depends = ["libkernel"]
+sources = ["src/bootloader/**/*.asm", "src/bootloader/linker.ld", "obj/libkernel.a"]
+outputs = ["obj/kernel.bin"]
+run = [
+  "mkdir -p obj/bootloader/grub",
+  "nasm -felf64 src/bootloader/grub/headers.asm -o obj/bootloader/grub/headers.o",
+  "nasm -felf64 src/bootloader/loader.asm -Isrc/bootloader/ -o obj/bootloader/loader.o",
+  "ld -n -T src/bootloader/linker.ld -o obj/kernel.bin obj/bootloader/grub/headers.o obj/bootloader/loader.o obj/libkernel.a",
+]
+
 [tasks.build]
 description = "Builds the iso file from the kernel bin and grub"
-run = "make iso"
+depends = ["kernel"]
+sources = ["obj/kernel.bin", "src/bootloader/grub/grub.cfg"]
+outputs = ["obj/tetanos.iso"]
+run = [
+  "mkdir -p obj/isofiles/boot/grub",
+  "cp obj/kernel.bin obj/isofiles/boot/kernel.bin",
+  "cp src/bootloader/grub/grub.cfg obj/isofiles/boot/grub",
+  "grub-mkrescue -o obj/tetanos.iso obj/isofiles",
+]
 
 [tasks.run]
 description = "Runs the iso within qemu"
-run = "make run"
+depends = ["build"]
+run = "qemu-system-x86_64 -cdrom obj/tetanos.iso"
+
+[tasks.clean]
+description = "Cleans the build folders"
+run = ["cargo clean", "rm -rf obj"]
+
+[tasks.doc]
+description = "Builds and open the libkernel documentation"
+run = "cargo doc --no-deps --open"
+
+[tasks.format]
+run = "cargo fmt"
+
+[tasks.lint]
+depends = ["format"]
+run = "cargo clippy"
+
+[tasks.test]
+depends = ["lint"]
+run = "cargo test --tests"
+
+[tasks.bench]
+run = "cargo bench --benches"
