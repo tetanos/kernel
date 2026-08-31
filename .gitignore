@@ -6,3 +6,8 @@ Cargo.lock
 /obj/
 
 .vscode
+.claude
+.env
+.env.*
+!.env.example
+mise.local.toml
