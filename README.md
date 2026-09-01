@@ -34,7 +34,7 @@ docker run --rm -v "$PWD":/build tetanos/builder
 `qemu-system-x86_64` is required to run this command.
 
 ```sh
-mise run run
+mise run qemu
 ```
 
 ## Flash a usb drive

@@ -38,7 +38,7 @@ run = [
   "grub-mkrescue -o obj/tetanos.iso obj/isofiles",
 ]
 
-[tasks.run]
+[tasks.qemu]
 description = "Runs the iso within qemu"
 depends = ["build"]
 run = "qemu-system-x86_64 -cdrom obj/tetanos.iso"
