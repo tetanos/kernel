@@ -36,5 +36,5 @@ impl TaskStateSegment {
 
 /// load the selector into the task register.
 pub unsafe fn load_task_register(selector: SegmentSelector) {
-    asm!("ltr $0" : : "r" (selector.0) : : "intel", "volatile");
+    core::arch::asm!("ltr {0:x}", in(reg) selector.0);
 }

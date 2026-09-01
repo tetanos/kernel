@@ -1,5 +1,4 @@
 use super::interrupt;
-use crate::arch::x86_64::hardware::cpu;
 use crate::interrupt_handler;
 
 // System Call Interrupt Handler

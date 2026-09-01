@@ -1,20 +1,16 @@
 use super::interrupt;
-use crate::arch::x86_64::hardware::cpu;
 use crate::arch::x86_64::hardware::io::programmable_interrupt_controller as pic;
 use crate::interrupt_handler;
 
 macro_rules! irq_handler {
     ($name: ident, $callback: block) => {
-        #[naked]
+        #[unsafe(naked)]
         pub unsafe extern "C" fn $name() {
-            #[inline(never)]
-            unsafe fn handler() {
+            unsafe extern "C" fn handler() {
                 $callback
             }
 
-            handler();
-
-            interrupt::ireturn();
+            core::arch::naked_asm!("call {handler}", "iretq", handler = sym handler);
         }
     };
 }

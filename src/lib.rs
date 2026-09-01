@@ -6,10 +6,6 @@
 #![allow(unused_attributes)]
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(not(test), no_main)]
-#![feature(abi_x86_interrupt)]
-#![feature(asm)]
-#![feature(lang_items)]
-#![feature(naked_functions)]
 
 #[macro_use]
 mod vga;
