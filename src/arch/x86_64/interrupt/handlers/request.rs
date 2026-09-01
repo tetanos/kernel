@@ -26,7 +26,6 @@ pub unsafe fn acknowledge(irq: u8) {
 
 // Programmable Interrupt Timer
 irq_handler!(programmable_interrupt_timer, {
-    println!("pit");
     pic::MASTER.acknowledge();
 });
 
