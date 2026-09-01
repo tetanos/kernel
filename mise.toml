@@ -2,16 +2,16 @@
 lockfile = true
 
 [tools]
-rust = "nightly"
+rust = { version = "1", targets = "x86_64-unknown-none" }
 
 [tasks.libkernel]
 description = "Builds the rust libkernel"
-sources = ["src/**/*.rs", "Cargo.toml", "targets/*.json"]
+sources = ["src/**/*.rs", "Cargo.toml"]
 outputs = ["obj/libkernel.a"]
 run = [
   "mkdir -p obj",
-  "RUST_TARGET_PATH={{config_root}}/targets xargo build --target x86_64_unknown-none",
-  "cp target/x86_64_unknown-none/debug/libkernel.a obj/libkernel.a",
+  "cargo build --target x86_64-unknown-none",
+  "cp target/x86_64-unknown-none/debug/libkernel.a obj/libkernel.a",
 ]
 
 [tasks.kernel]
