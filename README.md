@@ -45,9 +45,9 @@ Be careful with this command, it will format your usb drive.
 dd if=obj/tetanos.iso of=/dev/diskX && sync
 ```
 
-## Note for OSX dev
+## Note for macOS dev
 
-GNU ld doesn't produce the ELF kernel binary on OSX, so build from Docker
+GNU ld doesn't produce the ELF kernel binary on macOS, so build from Docker
 instead.
 
 ## License
