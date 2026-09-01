@@ -19,23 +19,49 @@ impl ExceptionContext {
 
 macro_rules! exception_handler {
     ($name: ident, $context: ident, $callback: block) => {
-        #[naked]
-        pub unsafe extern fn $name() {
-            #[inline(never)]
-            unsafe fn handler($context: &ExceptionContext) {
+        #[unsafe(naked)]
+        pub unsafe extern "C" fn $name() {
+            unsafe extern "C" fn handler($context: &ExceptionContext) {
                 $callback
             }
 
-            cpu:: Registers::push();
-
-            let rsp: usize;
-            asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
-
-            handler(&*(rsp as *const ExceptionContext));
-
-            cpu::Registers::pop();
-            asm!("add rsp, 8" : : : : "intel", "volatile");
-            interrupt::ireturn();
+            core::arch::naked_asm!(
+                "push r15",
+                "push r14",
+                "push r13",
+                "push r12",
+                "push rbp",
+                "push rbx",
+                "push r11",
+                "push r10",
+                "push r9",
+                "push r8",
+                "push rsi",
+                "push rdi",
+                "push rdx",
+                "push rcx",
+                "push rax",
+                "mov rdi, rsp",
+                "call {handler}",
+                "pop rax",
+                "pop rcx",
+                "pop rdx",
+                "pop rdi",
+                "pop rsi",
+                "pop r8",
+                "pop r9",
+                "pop r10",
+                "pop r11",
+                "pop rbx",
+                "pop rbp",
+                "pop r12",
+                "pop r13",
+                "pop r14",
+                "pop r15",
+                "add rsp, 8",
+                "iretq",
+                handler = sym handler,
+            );
         }
     }
 }
@@ -121,7 +147,7 @@ exception_handler!(protection, context, {
 // Page Fault Exception handler
 exception_handler!(page, context, {
     let cr2: usize;
-    asm!("mov rax, cr2" : "={rax}"(cr2) : : : "intel", "volatile");
+    core::arch::asm!("mov {}, cr2", out(reg) cr2);
     println!("Page fault at {:x}", cr2);
     context.dump();
 });

@@ -1,3 +1,4 @@
+use core::arch::asm;
 use core::mem::size_of;
 
 pub mod global_descriptor_table;
@@ -51,42 +52,40 @@ impl SegmentSelector {
 ///
 /// TODO: cleanup this mess
 pub unsafe fn load_code_segment(selector: SegmentSelector) {
-    //    asm!("movw $0, %cs " :: "r"(selector.0) : "memory" : "volatile");
-    #[inline(always)]
-    unsafe fn far_jump_to(sel: SegmentSelector) {
-        asm!("pushq $0; \
-              leaq  1f(%rip), %rax; \
-              pushq %rax; \
-              lretq; \
-              1:" :: "ri" (u64::from(sel.0)) : "rax" "memory");
-    }
-
-    far_jump_to(selector)
+    asm!(
+        "push {sel}",
+        "lea {tmp}, [rip + 2f]",
+        "push {tmp}",
+        "retfq",
+        "2:",
+        sel = in(reg) u64::from(selector.0),
+        tmp = out(reg) _,
+    );
 }
 
 /// Load a segment into the stack segment register.
 pub unsafe fn load_stack_segment(selector: SegmentSelector) {
-    asm!("movw $0, %ss " :: "r"(selector.0) : "memory" : "volatile");
+    asm!("mov ss, {0:x}", in(reg) selector.0);
 }
 
 /// Load a segment into the data segment register.
 pub unsafe fn load_data_segment(selector: SegmentSelector) {
-    asm!("movw $0, %ds " :: "r"(selector.0) : "memory" : "volatile");
+    asm!("mov ds, {0:x}", in(reg) selector.0);
 }
 
 /// Load a segment into the extra segment register.
 pub unsafe fn load_extra_segment(selector: SegmentSelector) {
-    asm!("movw $0, %es " :: "r"(selector.0) : "memory" : "volatile");
+    asm!("mov es, {0:x}", in(reg) selector.0);
 }
 
 /// Load a segment into the F segment register.
 pub unsafe fn load_f_segment(selector: SegmentSelector) {
-    asm!("movw $0, %fs " :: "r"(selector.0) : "memory" : "volatile");
+    asm!("mov fs, {0:x}", in(reg) selector.0);
 }
 
 /// Load a segment into the G segment register.
 pub unsafe fn load_g_segment(selector: SegmentSelector) {
-    asm!("movw $0, %gs " :: "r"(selector.0) : "memory" : "volatile");
+    asm!("mov gs, {0:x}", in(reg) selector.0);
 }
 
 /// Represent a descriptor table into memory.
@@ -110,20 +109,20 @@ impl<T> DescriptorTablePointer<T> {
 /// Load the global offset table into memory.
 pub fn lgdt<T>(gdt: &DescriptorTablePointer<T>) {
     unsafe {
-        asm!("lgdt ($0)" :: "r" (gdt) : "memory");
+        asm!("lgdt [{}]", in(reg) gdt as *const DescriptorTablePointer<T>);
     }
 }
 
 /// Load the local descriptor table into memory.
 pub fn lldt<T>(ldt: &DescriptorTablePointer<T>) {
     unsafe {
-        asm!("lldt ($0)" :: "r" (ldt) : "memory");
+        asm!("lldt [{}]", in(reg) ldt as *const DescriptorTablePointer<T>);
     }
 }
 
 /// Load the interrupt descriptor table into memory.
 pub fn lidt<T>(idt: &DescriptorTablePointer<T>) {
     unsafe {
-        asm!("lidt ($0)" :: "r" (idt) : "memory");
+        asm!("lidt [{}]", in(reg) idt as *const DescriptorTablePointer<T>);
     }
 }

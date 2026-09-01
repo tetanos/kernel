@@ -1,5 +1,7 @@
 pub use super::hardware::cpu;
 
+use core::arch::asm;
+
 /// Interrupt Handlers
 pub mod handlers;
 
@@ -40,7 +42,7 @@ pub struct InterruptContext {
 }
 
 impl InterruptContext {
-    fn dump(&self) {
+    pub fn dump(&self) {
         //println!("{:#x?}", &self);
     }
 }
@@ -48,54 +50,78 @@ impl InterruptContext {
 #[macro_export]
 macro_rules! interrupt_handler {
     ($name: ident, $context: ident, $callback: block) => {
-        #[naked]
-        pub unsafe extern fn $name() {
-            #[inline(never)]
-            unsafe fn handler($context: &interrupt::InterruptContext) {
+        #[unsafe(naked)]
+        pub unsafe extern "C" fn $name() {
+            unsafe extern "C" fn handler($context: &interrupt::InterruptContext) {
                 $callback
             }
 
-            cpu::Registers::push();
-
-            let rsp: usize;
-            asm!("" : "={rsp}"(rsp) : : : "intel", "volatile");
-
-            handler(&*(rsp as *const interrupt::InterruptContext));
-
-            cpu::Registers::pop();
-            interrupt::ireturn();
+            core::arch::naked_asm!(
+                "push r15",
+                "push r14",
+                "push r13",
+                "push r12",
+                "push rbp",
+                "push rbx",
+                "push r11",
+                "push r10",
+                "push r9",
+                "push r8",
+                "push rsi",
+                "push rdi",
+                "push rdx",
+                "push rcx",
+                "push rax",
+                "mov rdi, rsp",
+                "call {handler}",
+                "pop rax",
+                "pop rcx",
+                "pop rdx",
+                "pop rdi",
+                "pop rsi",
+                "pop r8",
+                "pop r9",
+                "pop r10",
+                "pop r11",
+                "pop rbx",
+                "pop rbp",
+                "pop r12",
+                "pop r13",
+                "pop r14",
+                "pop r15",
+                "iretq",
+                handler = sym handler,
+            );
         }
-    }
+    };
 }
 
 /// Set the interrupt flag.
 pub fn enable() {
     unsafe {
-        asm!("sti" : : : : "intel", "volatile");
+        asm!("sti");
     }
 }
 
 /// Clear the interrupt flag.
 pub fn disable() {
     unsafe {
-        asm!("cli" : : : : "intel", "volatile");
+        asm!("cli");
     }
 }
 
 /// Call the system call interrupt.
 pub fn syscall() {
-    unsafe { asm!("int 0x80" : : : : "intel", "volatile") }
+    unsafe {
+        asm!("int 0x80");
+    }
 }
 
 /// Trigger the breakpoint trap.
 pub fn breakpoint() {
-    unsafe { asm!("int3" : : : : "intel", "volatile") }
-}
-
-/// Return from the current interrupt.
-#[inline(always)]
-pub fn ireturn() {
-    unsafe { asm!("iretq" : : : : "intel", "volatile") }
+    unsafe {
+        asm!("int3");
+    }
 }
 
 /// Halt the system.
@@ -103,6 +129,6 @@ pub fn ireturn() {
 /// Using this function will stop the cpu until the next interrupt. It reduce energy consumption.
 pub fn halt() {
     unsafe {
-        asm!("hlt" : : : : "intel", "volatile");
+        asm!("hlt");
     }
 }

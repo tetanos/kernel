@@ -1,3 +1,4 @@
+use core::arch::asm;
 use core::marker::PhantomData;
 
 use crate::common::IO;
@@ -23,7 +24,7 @@ impl IO for ProgrammedIO<u8> {
     fn read(&self) -> u8 {
         let value: u8;
         unsafe {
-            asm!("in $0, $1" : "={al}"(value) : "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("in al, dx", out("al") value, in("dx") self.port);
         }
         value
     }
@@ -31,7 +32,7 @@ impl IO for ProgrammedIO<u8> {
     #[inline(always)]
     fn write(&mut self, value: u8) {
         unsafe {
-            asm!("out $1, $0" : : "{al}"(value), "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("out dx, al", in("al") value, in("dx") self.port);
         }
     }
 }
@@ -43,7 +44,7 @@ impl IO for ProgrammedIO<u16> {
     fn read(&self) -> u16 {
         let value: u16;
         unsafe {
-            asm!("in $0, $1" : "={al}"(value) : "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("in ax, dx", out("ax") value, in("dx") self.port);
         }
         value
     }
@@ -51,7 +52,7 @@ impl IO for ProgrammedIO<u16> {
     #[inline(always)]
     fn write(&mut self, value: u16) {
         unsafe {
-            asm!("out $1, $0" : : "{al}"(value), "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("out dx, ax", in("ax") value, in("dx") self.port);
         }
     }
 }
@@ -63,7 +64,7 @@ impl IO for ProgrammedIO<u32> {
     fn read(&self) -> u32 {
         let value: u32;
         unsafe {
-            asm!("in $0, $1" : "={al}"(value) : "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("in eax, dx", out("eax") value, in("dx") self.port);
         }
         value
     }
@@ -71,7 +72,7 @@ impl IO for ProgrammedIO<u32> {
     #[inline(always)]
     fn write(&mut self, value: u32) {
         unsafe {
-            asm!("out $1, $0" : : "{al}"(value), "{dx}"(self.port) : "memory" : "intel", "volatile");
+            asm!("out dx, eax", in("eax") value, in("dx") self.port);
         }
     }
 }
